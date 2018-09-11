@@ -90,11 +90,19 @@ class TestEndBidStage(TestBidsHandler):
 
     def setUp(self):
         super(TestEndBidStage, self).setUp()
+        self.bids_handler.context['auction_protocol'] = {}
         self.patch_generate_request_id = mock.patch('openprocurement.auction.texas.bids.generate_request_id')
         self.mocked_generate_request_id = self.patch_generate_request_id.start()
 
         self.patch_scheduler = mock.patch('openprocurement.auction.texas.bids.SCHEDULER')
         self.mocked_scheduler = self.patch_scheduler.start()
+
+        self.patch_approve_auction_protocol_info_on_bids_stage = mock.patch(
+            'openprocurement.auction.texas.bids.approve_auction_protocol_info_on_bids_stage'
+        )
+        self.mocked_approve_auction_protocol_info_on_bids_stage = \
+            self.patch_approve_auction_protocol_info_on_bids_stage.start()
+        self.mocked_approve_auction_protocol_info_on_bids_stage.return_value = {'auction': 'protocol'}
 
         self.patch_prepare_auction_stages = mock.patch(
             'openprocurement.auction.texas.bids.utils.prepare_auction_stages'
@@ -128,6 +136,7 @@ class TestEndBidStage(TestBidsHandler):
         self.patch_set_specific_hour.stop()
         self.patch_get_round_ending_time.stop()
         self.patch_round_duration.stop()
+        self.patch_approve_auction_protocol_info_on_bids_stage.stop()
 
     def test_end_bid_stage_no_main_round(self):
         auction_document = {'stages': [], 'results': [], 'minimalStep': 30, 'current_stage': 0}
@@ -147,6 +156,13 @@ class TestEndBidStage(TestBidsHandler):
 
         self.mocked_generate_request_id.assert_called_once()
         self.mocked_scheduler.remove_all_jobs.assert_called_once()
+        self.mocked_approve_auction_protocol_info_on_bids_stage.assert_called_once_with(
+            self.bids_handler.context['auction_document'], {}
+        )
+        self.assertEqual(
+            self.bids_handler.context['auction_protocol'],
+            self.mocked_approve_auction_protocol_info_on_bids_stage.return_value
+        )
         self.mocked_update_auction_document.assert_called_once_with(
             self.bids_handler.context, self.bids_handler.database
         )
@@ -182,6 +198,13 @@ class TestEndBidStage(TestBidsHandler):
 
         self.mocked_generate_request_id.assert_called_once()
         self.mocked_scheduler.remove_all_jobs.assert_called_once()
+        self.mocked_approve_auction_protocol_info_on_bids_stage.assert_called_once_with(
+            self.bids_handler.context['auction_document'], {}
+        )
+        self.assertEqual(
+            self.bids_handler.context['auction_protocol'],
+            self.mocked_approve_auction_protocol_info_on_bids_stage.return_value
+        )
         self.mocked_update_auction_document.assert_called_once_with(
             self.bids_handler.context, self.bids_handler.database
         )
