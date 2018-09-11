@@ -17,8 +17,10 @@ from openprocurement.auction.texas.journal import (
     AUCTION_WORKER_SERVICE_END_BID_STAGE,
     AUCTION_WORKER_SERVICE_START_NEXT_STAGE
 )
-from openprocurement.auction.texas.utils import set_specific_hour, get_round_ending_time, \
-    approve_auction_protocol_info_on_bids_stage
+from openprocurement.auction.texas.utils import (
+    set_specific_hour, get_round_ending_time,
+    approve_auction_protocol_info_on_bids_stage,
+)
 
 LOGGER = logging.getLogger("Auction Worker Texas")
 
@@ -62,6 +64,12 @@ class BidsHandler(object):
 
         # Cleaning up preplanned jobs
         SCHEDULER.remove_all_jobs()
+
+        # Update auction protocol
+        auction_protocol = approve_auction_protocol_info_on_bids_stage(
+            self.context['auction_document'], self.context['auction_protocol']
+        )
+        self.context['auction_protocol'] = auction_protocol
 
         with utils.update_auction_document(self.context, self.database) as auction_document:
             # Creating new stages

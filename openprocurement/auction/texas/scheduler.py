@@ -31,7 +31,7 @@ from openprocurement.auction.texas.utils import (
     update_auction_document,
     prepare_end_stage,
     approve_auction_protocol_info_on_announcement,
-    approve_auction_protocol_info)
+)
 
 LOGGER = logging.getLogger('Auction Worker Texas')
 
@@ -113,11 +113,8 @@ class JobService(object):
             auction_document["current_stage"] = len(auction_document["stages"]) - 1
             auction_document['endDate'] = auction_end.isoformat()
 
-        auction_protocol = approve_auction_protocol_info(
-            self.context['auction_document'], self.context['auction_protocol']
-        )
         auction_protocol = approve_auction_protocol_info_on_announcement(
-            self.context['auction_document'], auction_protocol
+            self.context['auction_document'], self.context['auction_protocol']
         )
         self.context['auction_protocol'] = auction_protocol
         LOGGER.info(
