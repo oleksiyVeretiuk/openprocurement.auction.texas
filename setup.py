@@ -24,6 +24,9 @@ ENTRY_POINTS = {
     'openprocurement.auction.components': [
         'texas = openprocurement.auction.texas.includeme:texasProcedure',
     ],
+    'openprocurement.auction.routes': [
+        'texas = openprocurement.auction.texas.includeme:texas_routes'
+    ],
     'openprocurement.auction.robottests': [
         'texas = openprocurement.auction.texas.tests.functional.main:includeme'
     ],
