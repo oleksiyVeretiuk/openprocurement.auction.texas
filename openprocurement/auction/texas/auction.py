@@ -332,4 +332,5 @@ class Auction(object):
     def _set_mapping(self):
         for index, bid in enumerate(self.bidders_data):
             if bid['id'] not in self.bids_mapping:
-                self.bids_mapping[self.bidders_data[index]['id']] = len(self.bids_mapping.keys()) + 1
+                generated_bid_number = len(self.bids_mapping.keys()) + 1
+                self.bids_mapping[self.bidders_data[index]['id']] = bid.get('bidNumber', generated_bid_number)
