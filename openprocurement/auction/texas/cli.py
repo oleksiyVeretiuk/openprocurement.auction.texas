@@ -24,7 +24,7 @@ from openprocurement.auction.texas.scheduler import prepare_job_service, IJobSer
 logging.addLevelName(25, 'CHECK')
 logging.Logger.check = check
 
-LOGGER = logging.getLogger('Auction Worker Insider')
+LOGGER = logging.getLogger('Auction Worker Texas')
 
 
 def register_utilities(worker_config, args):
