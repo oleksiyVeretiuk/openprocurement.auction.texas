@@ -21,26 +21,30 @@ class TestInit(TestCouchDBDatabase):
     def setUp(self):
         super(TestInit, self).setUp()
 
-        self.patch_couchdb_database = mock.patch('openprocurement.auction.texas.database.Database')
+        self.patch_couchdb_server = mock.patch('openprocurement.auction.texas.database.Server')
         self.patch_request_session = mock.patch('openprocurement.auction.texas.database.Session')
 
         self.couchdb_database = mock.MagicMock()
-        self.mock_couchdb_database = self.patch_couchdb_database.start()
-        self.mock_couchdb_database.return_value = self.couchdb_database
+        self.mock_couchdb_server = self.patch_couchdb_server.start()
+        self.mock_couchdb_server.return_value = {
+            self.config['COUCH_DATABASE'].rsplit('/', 1)[1]: self.couchdb_database
+        }
 
         self.request_session = mock.MagicMock()
         self.mocked_request_session = self.patch_request_session.start()
         self.mocked_request_session.return_value = self.request_session
 
     def tearDown(self):
-        self.patch_couchdb_database.stop()
+        self.patch_couchdb_server.stop()
         self.patch_request_session.stop()
 
     def test_init(self):
         db = self.database_class(self.config)
 
-        self.assertEqual(self.mock_couchdb_database.call_count, 1)
-        self.mock_couchdb_database.assert_called_with(self.config['COUCH_DATABASE'], session=self.request_session)
+        self.assertEqual(self.mock_couchdb_server.call_count, 1)
+        self.mock_couchdb_server.assert_called_with(
+            self.config['COUCH_DATABASE'].rsplit('/', 1)[0], session=self.request_session
+        )
 
         self.assertEqual(self.mocked_request_session.call_count, 1)
         self.mocked_request_session.assert_called_with(retry_delays=range(10))
@@ -53,12 +57,12 @@ class TestGetDocument(TestCouchDBDatabase):
     def setUp(self):
         super(TestGetDocument, self).setUp()
 
-        self.patch_couchdb_database = mock.patch('openprocurement.auction.texas.database.Database')
+        self.patch_couchdb_server = mock.patch('openprocurement.auction.texas.database.Server')
         self.patch_request_session = mock.patch('openprocurement.auction.texas.database.Session')
 
         self.couchdb_database = mock.MagicMock()
-        self.mock_couchdb_database = self.patch_couchdb_database.start()
-        self.mock_couchdb_database.return_value = self.couchdb_database
+        self.mock_couchdb_server = self.patch_couchdb_server.start()
+        self.mock_couchdb_server.return_value = self.couchdb_database
 
         self.mocked_request_session = self.patch_request_session.start()
         self.mocked_request_session.return_value = mock.MagicMock()
@@ -66,7 +70,7 @@ class TestGetDocument(TestCouchDBDatabase):
         self.database = self.database_class(self.config)
 
     def tearDown(self):
-        self.patch_couchdb_database.stop()
+        self.patch_couchdb_server.stop()
         self.patch_request_session.stop()
 
     def test_getting_document(self):
@@ -129,12 +133,14 @@ class TestUpdateRevision(TestCouchDBDatabase):
     def setUp(self):
         super(TestUpdateRevision, self).setUp()
 
-        self.patch_couchdb_database = mock.patch('openprocurement.auction.texas.database.Database')
+        self.patch_couchdb_server = mock.patch('openprocurement.auction.texas.database.Server')
         self.patch_request_session = mock.patch('openprocurement.auction.texas.database.Session')
 
         self.couchdb_database = mock.MagicMock()
-        self.mock_couchdb_database = self.patch_couchdb_database.start()
-        self.mock_couchdb_database.return_value = self.couchdb_database
+        self.mock_couchdb_server = self.patch_couchdb_server.start()
+        self.mock_couchdb_server.return_value = {
+            self.config['COUCH_DATABASE'].rsplit('/', 1)[1]: self.couchdb_database
+        }
 
         self.mocked_request_session = self.patch_request_session.start()
         self.mocked_request_session.return_value = mock.MagicMock()
@@ -146,7 +152,7 @@ class TestUpdateRevision(TestCouchDBDatabase):
         self.database.get_auction_document.return_value = {'_rev': self.new_rev}
 
     def tearDown(self):
-        self.patch_couchdb_database.stop()
+        self.patch_couchdb_server.stop()
         self.patch_request_session.stop()
 
     def test_update_revision(self):
@@ -166,12 +172,14 @@ class TestSaveDocument(TestCouchDBDatabase):
     def setUp(self):
         super(TestSaveDocument, self).setUp()
 
-        self.patch_couchdb_database = mock.patch('openprocurement.auction.texas.database.Database')
+        self.patch_couchdb_server = mock.patch('openprocurement.auction.texas.database.Server')
         self.patch_request_session = mock.patch('openprocurement.auction.texas.database.Session')
 
         self.couchdb_database = mock.MagicMock()
-        self.mock_couchdb_database = self.patch_couchdb_database.start()
-        self.mock_couchdb_database.return_value = self.couchdb_database
+        self.mock_couchdb_server = self.patch_couchdb_server.start()
+        self.mock_couchdb_server.return_value = {
+            self.config['COUCH_DATABASE'].rsplit('/', 1)[1]: self.couchdb_database
+        }
 
         self.mocked_request_session = self.patch_request_session.start()
         self.mocked_request_session.return_value = mock.MagicMock()
@@ -181,7 +189,7 @@ class TestSaveDocument(TestCouchDBDatabase):
         self.database._update_revision = mock.MagicMock()
 
     def tearDown(self):
-        self.patch_couchdb_database.stop()
+        self.patch_couchdb_server.stop()
         self.patch_request_session.stop()
 
     def test_save_document(self):

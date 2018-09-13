@@ -20,19 +20,29 @@ class TestOpenProcurementAPIDataSource(unittest.TestCase):
             'HASH_SECRET': 'secret',
         }
 
+        self.patch_make_request = mock.patch('openprocurement.auction.texas.datasource.make_request')
+        self.mocked_make_request = self.patch_make_request.start()
+        self.mocked_make_request.return_value = True
+
 
 class TestInit(TestOpenProcurementAPIDataSource):
 
     def setUp(self):
         super(TestInit, self).setUp()
         self.request_session = mock.MagicMock()
+        self.request = mock.MagicMock()
 
         self.patch_request_session = mock.patch('openprocurement.auction.texas.datasource.RequestsSession')
         self.mocked_request_session = self.patch_request_session.start()
         self.mocked_request_session.return_value = self.request_session
 
+        self.patch_request = mock.patch('openprocurement.auction.texas.datasource.request')
+        self.mocked_request = self.patch_request.start()
+        self.mocked_request.return_value = self.request
+
     def tearDown(self):
         self.patch_request_session.stop()
+        self.patch_request.stop()
 
     def test_init_with_docservice(self):
         self.config['with_document_service'] = True
@@ -48,16 +58,33 @@ class TestInit(TestOpenProcurementAPIDataSource):
 
         self.assertEqual(datasource.api_token, self.config['resource_api_token'])
 
+        health_url = "{resource_api_server}api/{resource_api_version}/health"
         url = '{}api/{}/{}/{}'.format(
             self.config['resource_api_server'],
             self.config['resource_api_version'],
             self.config['resource_name'],
             self.config['auction_id']
         )
+
         self.assertEqual(datasource.api_url, url)
         self.assertIs(datasource.session, self.request_session)
         self.assertIs(datasource.session_ds, self.request_session)
         self.assertEqual(self.mocked_request_session.call_count, 2)
+        # Assert API availability was checked
+        self.assertEqual(self.mocked_make_request.call_count, 1)
+        self.mocked_make_request.assert_called_with(
+            url=health_url.format(**self.config),
+            method='get',
+            retry_count=5
+        )
+        # Assert DS connection was checked
+        self.assertEqual(self.mocked_request.call_count, 1)
+        self.mocked_request.assert_called_with(
+            "GET",
+            datasource.document_service_url,
+            timeout=5
+        )
+
 
     def test_init_without_docservice(self):
         self.config['with_document_service'] = False
@@ -66,18 +93,29 @@ class TestInit(TestOpenProcurementAPIDataSource):
 
         self.assertEqual(datasource.api_token, self.config['resource_api_token'])
 
+        health_url = "{resource_api_server}api/{resource_api_version}/health"
         url = '{}api/{}/{}/{}'.format(
             self.config['resource_api_server'],
             self.config['resource_api_version'],
             self.config['resource_name'],
             self.config['auction_id']
         )
+
         self.assertEqual(datasource.api_url, url)
         self.assertEqual(self.config['AUCTIONS_URL'], datasource.auction_url)
         self.assertEqual(self.config['HASH_SECRET'], datasource.hash_secret)
         self.assertIs(datasource.session, self.request_session)
         self.assertIs(hasattr(datasource, 'session_ds'), False)
         self.assertEqual(self.mocked_request_session.call_count, 1)
+        # Assert API availability was checked
+        self.assertEqual(self.mocked_make_request.call_count, 1)
+        self.mocked_make_request.assert_called_with(
+            url=health_url.format(**self.config),
+            method='get',
+            retry_count=5
+        )
+        # Assert DS connection was not checked
+        self.assertEqual(self.mocked_request.call_count, 0)
 
 
 class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
@@ -275,11 +313,9 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
 
         self.request_session = mock.MagicMock()
 
-        self.patch_make_request = mock.patch('openprocurement.auction.texas.datasource.make_request')
         self.patch_generate_request_id = mock.patch('openprocurement.auction.texas.datasource.generate_request_id')
         self.patch_get_latest_bid_for_bidder = mock.patch('openprocurement.auction.texas.datasource.get_latest_bid_for_bidder')
 
-        self.mocked_make_request = self.patch_make_request.start()
         self.mocked_generate_request_id = self.patch_generate_request_id.start()
 
         self.request_id = uuid4().hex
@@ -287,7 +323,6 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
         self.mocked_get_latest_bid_for_bidder = self.patch_get_latest_bid_for_bidder.start()
 
     def tearDown(self):
-        self.patch_make_request.stop()
         self.patch_generate_request_id.stop()
         self.patch_get_latest_bid_for_bidder.stop()
 
@@ -335,7 +370,7 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_get_latest_bid_for_bidder.call_count, 1)
         self.mocked_get_latest_bid_for_bidder.assert_called_with(self.db_document['results'], last_bid_of_active_bidder['id'])
 
-        self.assertEqual(self.mocked_make_request.call_count, 1)
+        self.assertEqual(self.mocked_make_request.call_count, 2)
         self.mocked_make_request.assert_called_with(
             self.datasource.api_url + '/auction',
             data=data_with_results,
@@ -390,7 +425,7 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
             last_bid_of_active_bidder['id']
         )
 
-        self.assertEqual(self.mocked_make_request.call_count, 1)
+        self.assertEqual(self.mocked_make_request.call_count, 2)
         self.mocked_make_request.assert_called_with(
             self.datasource.api_url + '/auction',
             data=data_with_results,
@@ -518,9 +553,15 @@ class TestUploadFileWithDS(TestOpenProcurementAPIDataSource):
             'password': 'password',
             'url': 'http://docservice_url'
         }
+        self.request = mock.MagicMock()
 
         self.config['DOCUMENT_SERVICE'] = self.ds_service_config
         self.config['with_document_service'] = True
+
+        self.patch_request = mock.patch('openprocurement.auction.texas.datasource.request')
+        self.mocked_request = self.patch_request.start()
+        self.mocked_request.return_value = self.request
+
         self.datasource = self.datasource_class(self.config)
         self.history_data = {'auction': 'protocol'}
 
@@ -571,7 +612,7 @@ class TestUploadFileWithDS(TestOpenProcurementAPIDataSource):
             'session': self.session_ds,
             'retry_count': 3
         }
-        # Really bad practise but only way to make assert_called_with to previous call
+        # Really bad practice but only way to make assert_called_with to previous call
         self.assertEqual(
             self.mock_make_request.call_args_list[0][0][0],
             self.ds_service_config['url']
@@ -612,7 +653,7 @@ class TestUploadFileWithDS(TestOpenProcurementAPIDataSource):
             'session': self.session_ds,
             'retry_count': 3
         }
-        # Really bad practise but only way to make assert_called_with to previous call
+        # Really bad practice but only way to make assert_called_with to previous call
         self.assertEqual(
             self.mock_make_request.call_args_list[0][0][0],
             self.ds_service_config['url']
@@ -652,7 +693,7 @@ class TestUploadFileWithDS(TestOpenProcurementAPIDataSource):
             'session': self.session_ds,
             'retry_count': 3
         }
-        # Really bad practise but only way to make assert_called_with to previous call
+        # Really bad practice but only way to make assert_called_with to previous call
         self.assertEqual(
             self.mock_make_request.call_args_list[0][0][0],
             self.ds_service_config['url']
