@@ -9,7 +9,7 @@ from openprocurement.auction.worker_core.constants import TIMEZONE
 from openprocurement.auction.worker_core.utils import prepare_service_stage
 
 from openprocurement.auction.texas.constants import (
-    PAUSE_DURATION, DEADLINE_HOUR, END, MAIN_ROUND, PAUSE
+    PAUSE_DURATION, DEADLINE_HOUR, END, MAIN_ROUND, PAUSE, ROUND_DURATION
 )
 
 
@@ -37,11 +37,17 @@ def prepare_auction_stages(stage_start, auction_data, fast_forward=False):
     stage_start += timedelta(seconds=PAUSE_DURATION)
     deadline = set_specific_hour(stage_start, DEADLINE_HOUR)
     if stage_start < deadline:
+
+        planned_end = stage_start + timedelta(seconds=ROUND_DURATION)
+        planned_end = planned_end if planned_end < deadline else deadline
+
         main_round_stage.update({
             'start': stage_start.isoformat(),
             'type': MAIN_ROUND,
             'amount': auction_data['value']['amount'] + auction_data['minimalStep']['amount'],
-            'time': ''
+            'time': '',
+            # This field `planned_end' is needed to display time when round will automatically end if no one post bid
+            'planned_end': planned_end.isoformat()
         })
 
     return stages
