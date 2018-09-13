@@ -3,7 +3,7 @@ import logging
 from pkg_resources import iter_entry_points
 
 from copy import deepcopy
-from couchdb import Database, Session
+from couchdb import Session, Server
 from couchdb.http import HTTPError, RETRYABLE_ERRORS
 
 from zope.interface import (
@@ -61,8 +61,13 @@ class CouchDB(object):
     db_request_retries = 10
 
     def __init__(self, config):
-        self._db = Database(str(config["COUCH_DATABASE"]),
-                            session=Session(retry_delays=range(10)))
+        """
+        Check CouchDB availability and set _db attribute
+        """
+        server, db = config.get("COUCH_DATABASE").rsplit('/', 1)
+        server = Server(server, session=Session(retry_delays=range(10)))
+        database = server[db] if db in server else server.create(db)
+        self._db = database
 
     def _update_revision(self, auction_document, auction_doc_id):
         """

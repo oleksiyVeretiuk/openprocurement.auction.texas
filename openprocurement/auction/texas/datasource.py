@@ -13,7 +13,7 @@ from zope.interface import (
     Attribute
 )
 from dateutil.tz import tzlocal
-from requests import Session as RequestsSession
+from requests import Session as RequestsSession, request
 
 from openprocurement.auction.utils import (
     generate_request_id,
@@ -164,6 +164,13 @@ class OpenProcurementAPIDataSource(object):
     post_history_document = True
 
     def __init__(self, config):
+
+        # Checking API availability
+        health_url = "{resource_api_server}api/{resource_api_version}/health"
+        response = make_request(url=health_url.format(**config), method="get", retry_count=5)
+        if not response:
+            raise Exception("API can't be reached")
+
         self.api_url = urljoin(
             config['resource_api_server'],
             '/api/{0}/{1}/{2}'.format(
@@ -184,6 +191,9 @@ class OpenProcurementAPIDataSource(object):
             self.ds_credential['username'] = config['DOCUMENT_SERVICE']['username']
             self.ds_credential['password'] = config['DOCUMENT_SERVICE']['password']
             self.document_service_url = config['DOCUMENT_SERVICE']['url']
+
+            # Checking DS availability and setting session_ds attribute
+            request("GET", self.document_service_url, timeout=5)
             self.session_ds = RequestsSession()
 
     def get_data(self, public=True, with_credentials=False):

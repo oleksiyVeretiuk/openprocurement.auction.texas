@@ -11,6 +11,7 @@ import yaml
 from gevent.lock import BoundedSemaphore
 from zope.component.globalregistry import getGlobalSiteManager
 
+from openprocurement.auction.utils import check
 from openprocurement.auction.worker_core import constants as C
 
 from openprocurement.auction.texas.auction import Auction, SCHEDULER
@@ -20,33 +21,67 @@ from openprocurement.auction.texas.datasource import prepare_datasource, IDataSo
 from openprocurement.auction.texas.scheduler import prepare_job_service, IJobService
 
 
-def register_utilities(worker_config, auction_id):
+logging.addLevelName(25, 'CHECK')
+logging.Logger.check = check
+
+LOGGER = logging.getLogger('Auction Worker Insider')
+
+
+def register_utilities(worker_config, args):
+    auction_id = args.auction_doc_id
     gsm = getGlobalSiteManager()
+    exceptions = []
+    init_functions = []
 
-    # Register datasource
-    datasource_config = worker_config.get('datasource', {})
+    # Initializing datasource
+    if args.standalone:
+        datasource_config = {'type': 'test'}
+    else:
+        datasource_config = worker_config.get('datasource', {})
     datasource_config.update(auction_id=auction_id)
-    datasource = prepare_datasource(datasource_config)
-    gsm.registerUtility(datasource, IDataSource)
+    init_functions.append(
+        (prepare_datasource, (datasource_config,), 'datasource', IDataSource)
+    )
 
-    # Register database
+    # Initializing database
     database_config = worker_config.get('database', {})
-    database = prepare_database(database_config)
-    gsm.registerUtility(database, IDatabase)
+    init_functions.append(
+        (prepare_database, (database_config,), 'database', IDatabase)
+    )
 
-    # Register context
+    # Initializing context
     context_config = worker_config.get('context', {})
-    context = prepare_context(context_config)
+    init_functions.append(
+        (prepare_context, (context_config,), 'context', IContext)
+    )
+
+    # Initializing JobService
+    init_functions.append(
+        (prepare_job_service, (), 'job_service', IJobService)
+    )
+
+    # Checking and registering utilities
+    for init_function, args, utility_name, interface in init_functions:
+        result = ('ok', None)
+        try:
+            utility = init_function(*args)
+        except Exception as e:
+            exceptions.append(e)
+            result = ('failed', e)
+        else:
+            gsm.registerUtility(utility, interface)
+        finally:
+            LOGGER.check('{} - {}'.format(utility_name, result[0]), result[1])
+    if exceptions:
+        raise exceptions[0]
+
+    # Updating context
+    context = gsm.queryUtility(IContext)
     context['auction_doc_id'] = auction_id
     context['worker_defaults'] = worker_config
     # Initializing semaphore which is used for locking WSGI server actions
     # during applying bids or updating auction document
     context['server_actions'] = BoundedSemaphore()
-    gsm.registerUtility(context, IContext)
-
-    # Register JobService
-    job_service = prepare_job_service()
-    gsm.registerUtility(job_service, IJobService)
 
 
 def main():
@@ -61,6 +96,9 @@ def main():
     parser.add_argument('-debug', dest='debug', action='store_const',
                         const=True, default=False,
                         help='Debug mode for auction')
+    parser.add_argument('--standalone', dest='standalone', action='store_const',
+                        const=True, default=False,
+                        help='Use TestingFileDataSource for auction')
 
     args = parser.parse_args()
 
@@ -79,8 +117,10 @@ def main():
         print "Auction worker defaults config not exists!!!"
         sys.exit(1)
 
-    register_utilities(worker_defaults, args.auction_doc_id)
+    register_utilities(worker_defaults, args)
     auction = Auction(args.auction_doc_id, worker_defaults=worker_defaults, debug=args.debug)
+    if args.cmd == 'check':
+        exit()
     if args.cmd == 'run':
         SCHEDULER.start()
         auction.schedule_auction()
