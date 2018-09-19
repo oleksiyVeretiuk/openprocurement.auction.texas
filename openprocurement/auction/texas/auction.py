@@ -223,13 +223,13 @@ class Auction(object):
                     bidder_id=bid['id'],
                     time=bid["date"] if "date" in bid else self.startDate,
                     bidder_name=self.bids_mapping[bid["id"]],
-                    amount=bid['value']['amount']
+                    amount=auction_document['value']['amount']
                 )
             )
             self.auction_protocol['timeline']['auction_start']['initial_bids'].append({
                 'bidder': bid['id'],
                 'date': bid['date'],
-                'amount': bid['value']['amount'],
+                'amount': auction_document['value']['amount'],
                 'bid_number': self.bids_mapping[bid['id']]
             })
         self.context['auction_protocol'] = deepcopy(self.auction_protocol)
