@@ -3,6 +3,7 @@ import os
 
 from flask import Flask, session
 from flask_oauthlib.client import OAuth
+
 from gevent import spawn
 from gevent.pywsgi import WSGIServer
 from pytz import timezone as tz
@@ -11,8 +12,9 @@ from zope.component import getGlobalSiteManager
 
 from openprocurement.auction.helpers.system import get_lisener
 from openprocurement.auction.event_source import (
-    sse, push_timestamps_events, check_clients
+    push_timestamps_events, check_clients
 )
+from openprocurement.auction.texas.event_source import sse
 from openprocurement.auction.utils import (
     create_mapping,
     generate_request_id
