@@ -1,11 +1,8 @@
 ---
-resource_api_server: "http://127.0.0.1:6543/"
-resource_api_version: "2.3"
-resource_api_token: "bfb75ce545154da382fc2ccd924d667c"
-resource_name: "auctions"
-AUCTIONS_URL: "http://localhost:8090/auctions/{auction_id}"
+resource_api_server: "https://lb.api-sandbox.ea.openprocurement.org/"
+resource_api_version: "0"
 HASH_SECRET: "0478095c8ece0bbc11f94663ac2c4f10b29666de"
-COUCH_DATABASE: "http://admin:zaq1xsw2@0.0.0.0:9000/auctions"
+SIGNATURE_KEY: "fe3b3b5999a08e68dfe62687c2ae147f62712ceace58c1ffca8ea819eabcb5d1"
 OAUTH_CLIENT_ID: "9Nu8QpojpoWpoSBP5OKxjsiSvDBALKeJLrA27hQU"
 OAUTH_CLIENT_SECRET: "8VeRc4QFKJU44IJ5sz7jPUKxmUSAw2iNE87bDW4F"
 OAUTH_BASE_URL: "http://localhost:9003/api/"
@@ -20,13 +17,27 @@ redis_password: "12345"
 redis_database: "0"
 sentinel_cluster_name: "redis-cluster"
 planning_procerude: "full"
-sandbox_mode: "1"
-with_document_service: false
-DOCUMENT_SERVICE:
-  url: ""
-  username: ""
-  password: ""
+sandbox_mode: ""
+datasource:
+  type: "test"
+  resource_api_server: "https://lb.api-sandbox.ea.openprocurement.org/"
+  resource_api_version: "0"
+  resource_api_token: "bfb75ce545154da382fc2ccd924d667c"
+  resource_name: "auctions"
+  AUCTIONS_URL: "http://localhost:8090/texas-auctions/{auction_id}"
+  HASH_SECRET: "0478095c8ece0bbc11f94663ac2c4f10b29666de"
+  with_document_service: false
+  DOCUMENT_SERVICE:
+    url: ""
+    username: ""
+    password: ""
+database:
+  type: 'couchdb'
+  COUCH_DATABASE: "http://admin:zaq1xsw2@0.0.0.0:9000/database"
+context:
+  type: 'dict'
 version: 1
+disable_existing_loggers: false
 formatters:
   simpleFormater:
     format: "%(name)s-%(levelname)s: %(message)s"
