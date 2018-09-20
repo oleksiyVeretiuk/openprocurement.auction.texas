@@ -41,6 +41,7 @@ def initialize_application():
 
 def add_url_rules(app):
     app.add_url_rule('/login', 'login', views.login)
+    app.add_url_rule('/relogin', 'relogin', views.relogin)
     app.add_url_rule('/logout', 'logout', views.logout)
     app.add_url_rule('/authorized', 'authorized', views.authorized)
     app.add_url_rule('/postbid', 'postbid', views.post_bid, methods=['POST'])
