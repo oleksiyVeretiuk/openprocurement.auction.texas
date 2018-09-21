@@ -13,6 +13,7 @@ INSTALL_REQUIRES = [
 EXTRAS_REQUIRE = {
     'test': [
         'pytest',
+        'mock',
         'pytest-mock',
         'pytest-cov'
     ]

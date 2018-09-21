@@ -50,13 +50,15 @@ class TestFlaskApp(unittest.TestCase):
                 'auction_doc_id': str(tender_data['data']['auctionID'])
              }
         )
-        register_utilities(yaml_config, args)
+        db = MagicMock()
+        db.get.return_value = test_auction_document
+        with patch('openprocurement.auction.texas.cli.prepare_database', db):
+            register_utilities(yaml_config, args)
+
         app_auction = Auction(
             tender_id=tender_data['data']['auctionID'],
             worker_defaults=yaml.load(open(worker_defaults_file_path)),
         )
-        app_auction.db = MagicMock()
-        app_auction.db.get.return_value = test_auction_document
         worker_app.config.update(app_auction.worker_defaults)
         worker_app.logger_name = logger.name
         worker_app._logger = logger
