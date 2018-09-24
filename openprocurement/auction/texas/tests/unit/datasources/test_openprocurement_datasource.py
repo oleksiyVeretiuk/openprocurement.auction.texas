@@ -309,7 +309,13 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
         self.datasource = self.datasource_class(self.config)
         self.session = mock.MagicMock()
         self.datasource.session = self.session
-        self.db_document = {'results': []}
+        self.db_document = {
+            'results': [],
+            'value': {
+                'amount': 100,
+                'currency': 'UAH'
+            }
+        }
 
         self.request_session = mock.MagicMock()
 
@@ -327,10 +333,14 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
         self.patch_get_latest_bid_for_bidder.stop()
 
     def test_post_results_data_with_bids_in_active(self):
+        self.db_document['results'] = [
+            {'bidder_id': '2' * 32}
+        ]
         external_data = {'data': {
             'bids': [
                 {
                     'status': 'draft',
+                    'id': '1' * 32
                 },
                 {
                     'value': {'amount': 1000},
@@ -354,6 +364,7 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
                 'bids': [
                     {
                         'status': 'draft',
+                        'id': '1' * 32
                     },
                     {
                         'value': {'amount': last_bid_of_active_bidder['amount']},
@@ -381,10 +392,14 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
         )
 
     def test_post_results_data_with_bid_without_status(self):
+        self.db_document['results'] = [
+            {'bidder_id': '2' * 32}
+        ]
         external_data = {'data': {
             'bids': [
                 {
                     'status': 'draft',
+                    'id': '1' * 32
                 },
                 {
                     'value': {'amount': 1000},
@@ -407,8 +422,72 @@ class TestPostResultData(TestOpenProcurementAPIDataSource):
                 'bids': [
                     {
                         'status': 'draft',
+                        'id': '1' * 32
                     },
                     {
+                        'value': {'amount': last_bid_of_active_bidder['amount']},
+                        'date': last_bid_of_active_bidder['time'],
+                        'id': '2' * 32
+                    }
+                ]
+            }
+        }
+
+        self.datasource._post_results_data(external_data, self.db_document)
+
+        self.assertEqual(self.mocked_get_latest_bid_for_bidder.call_count, 1)
+        self.mocked_get_latest_bid_for_bidder.assert_called_with(
+            self.db_document['results'],
+            last_bid_of_active_bidder['id']
+        )
+
+        self.assertEqual(self.mocked_make_request.call_count, 2)
+        self.mocked_make_request.assert_called_with(
+            self.datasource.api_url + '/auction',
+            data=data_with_results,
+            user=self.datasource.api_token,
+            method='post',
+            request_id=self.request_id,
+            session=self.datasource.session
+        )
+
+    def test_active_bid_not_in_results(self):
+        self.db_document['results'] = [
+            {'bidder_id': '2' * 32}
+        ]
+        external_data = {'data': {
+            'bids': [
+                {
+                    'status': 'active',
+                    'id': '1' * 32
+                },
+                {
+                    'status': 'active',
+                    'value': {'amount': 1000},
+                    'date': 'bid create date',
+                    'id': '2' * 32
+                },
+
+            ]
+        }}
+
+        last_bid_of_active_bidder = {
+            'amount': 10000,
+            'time': 'time of bid',
+            'id': '2' * 32
+        }
+        self.mocked_get_latest_bid_for_bidder.return_value = last_bid_of_active_bidder
+
+        data_with_results = {
+            'data': {
+                'bids': [
+                    {
+                        'status': 'active',
+                        'id': '1' * 32,
+                        'value': self.db_document['value']
+                    },
+                    {
+                        'status': 'active',
                         'value': {'amount': last_bid_of_active_bidder['amount']},
                         'date': last_bid_of_active_bidder['time'],
                         'id': '2' * 32
