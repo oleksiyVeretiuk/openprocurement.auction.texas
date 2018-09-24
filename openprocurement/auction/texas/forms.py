@@ -28,7 +28,7 @@ def validate_bid_value(form, field):
         raise ValidationError(u'Current stage does not allow bidding')
     if field.data < current_amount:
         raise ValidationError(u'Too low value')
-    if field.data % minimal_step:
+    if field.data % minimal_step and field.data != current_amount:
         raise ValidationError(
             u'Value should be a multiplier of ' 
             u'a minimalStep amount ({})'.format(minimal_step)
