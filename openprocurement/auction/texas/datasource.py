@@ -258,11 +258,18 @@ class OpenProcurementAPIDataSource(object):
         result_bids = deepcopy(db_document["results"])
         posted_result_data = deepcopy(external_data["data"]["bids"])
 
+        # Need to check if bidder is invalid. He will be invalid if he didn`t make a bid
+        # during auction process
+        result_ids = [result['bidder_id'] for result in result_bids]
+
         for index, bid_info in enumerate(external_data["data"]["bids"]):
             if bid_info.get('status', 'active') == 'active':
-                auction_bid_info = get_latest_bid_for_bidder(result_bids, bid_info["id"])
-                posted_result_data[index]["value"]["amount"] = auction_bid_info["amount"]
-                posted_result_data[index]["date"] = auction_bid_info["time"]
+                if bid_info['id'] in result_ids:
+                    auction_bid_info = get_latest_bid_for_bidder(result_bids, bid_info["id"])
+                    posted_result_data[index]["value"]["amount"] = auction_bid_info["amount"]
+                    posted_result_data[index]["date"] = auction_bid_info["time"]
+                else:
+                    posted_result_data[index]["value"] = db_document["value"]
 
         data = {'data': {'bids': posted_result_data}}
         LOGGER.info(
