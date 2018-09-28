@@ -12,3 +12,5 @@ AUCTION_DEADLINE = 'auction-deadline'
 END = 'announcement'
 
 DEADLINE_HOUR = 17
+
+DEFAULT_AUCTION_TYPE = 'texas'

@@ -28,7 +28,8 @@ from openprocurement.auction.texas.constants import (
     MULTILINGUAL_FIELDS,
     ADDITIONAL_LANGUAGES,
     DEADLINE_HOUR,
-    ROUND_DURATION
+    ROUND_DURATION,
+    DEFAULT_AUCTION_TYPE
 )
 from openprocurement.auction.texas.context import IContext
 from openprocurement.auction.texas.datasource import IDataSource
@@ -254,7 +255,7 @@ class Auction(object):
             "initial_value": self._auction_data["data"].get(
                 "value", {}
             ).get('amount'),
-            "auction_type": "kadastral",
+            "auction_type": DEFAULT_AUCTION_TYPE,
         })
 
         for key in MULTILINGUAL_FIELDS:
