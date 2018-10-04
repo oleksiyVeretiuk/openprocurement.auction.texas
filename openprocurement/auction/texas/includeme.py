@@ -13,7 +13,7 @@ from openprocurement.auction.texas.planning import TexasPlanning
 LOGGER = logging.getLogger(__name__)
 
 
-def texasProcedure(components, procurement_method_types):
+def texas_components(components, procurement_method_types):
     for procurementMethodType in procurement_method_types:
         includeme(components, procurementMethodType)
 

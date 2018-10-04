@@ -23,7 +23,7 @@ ENTRY_POINTS = {
         'auction_texas = openprocurement.auction.texas.cli:main',
     ],
     'openprocurement.auction.components': [
-        'texas = openprocurement.auction.texas.includeme:texasProcedure',
+        'texas = openprocurement.auction.texas.includeme:texas_components',
     ],
     'openprocurement.auction.routes': [
         'texas = openprocurement.auction.texas.includeme:texas_routes'
