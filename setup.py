@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-VERSION = '1.0.2a1.dev6+eauctions'
+VERSION = '0.0.1'
 
 INSTALL_REQUIRES = [
     'setuptools',
@@ -23,7 +23,7 @@ ENTRY_POINTS = {
         'auction_texas = openprocurement.auction.texas.cli:main',
     ],
     'openprocurement.auction.components': [
-        'texas = openprocurement.auction.texas.includeme:texasProcedure',
+        'texas = openprocurement.auction.texas.includeme:texas_components',
     ],
     'openprocurement.auction.routes': [
         'texas = openprocurement.auction.texas.includeme:texas_routes'
