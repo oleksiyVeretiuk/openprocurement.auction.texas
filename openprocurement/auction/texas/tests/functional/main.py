@@ -57,7 +57,7 @@ TESTS = {
     "texas": {
         "worker_cmd": '{0}/bin/auction_texas planning {1}'
                       ' {0}/etc/auction_worker_texas.yaml'
-                      ' --planning_procerude partial_db',
+                      ' --planning_procerude partial_db --standalone',
         "runner": run_texas,
         'auction_worker_defaults': 'auction_worker_defaults:{0}/etc/auction_worker_defaults.yaml',
         'suite': PWD
