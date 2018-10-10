@@ -1121,6 +1121,8 @@ class TestSetStartDate(AuctionInitSetup):
 
     def setUp(self):
         super(TestSetStartDate, self).setUp()
+        self.auction.worker_defaults['sandbox_mode'] = False
+
         self.auction._auction_data = {
             'data': {
                 'auctionPeriod': {
