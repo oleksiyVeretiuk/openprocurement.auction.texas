@@ -314,11 +314,14 @@ class Auction(object):
         self.startDate = utils.convert_datetime(
             self._auction_data['data'].get('auctionPeriod', {}).get('startDate', '')
         )
+
+        deadline_hour = DEADLINE_HOUR if not self.worker_defaults.get('sandbox_mode', False) else 23
+
         self.deadline_time = datetime(
             self.startDate.year,
             self.startDate.month,
             self.startDate.day,
-            DEADLINE_HOUR
+            deadline_hour
         )
 
     def _set_bidders_data(self):
