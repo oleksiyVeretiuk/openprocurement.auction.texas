@@ -258,6 +258,9 @@ class Auction(object):
             "auction_type": DEFAULT_AUCTION_TYPE,
         })
 
+        if self._auction_data['data'].get('standalone'):
+            auction_document['standalone'] = True
+
         for key in MULTILINGUAL_FIELDS:
             for lang in ADDITIONAL_LANGUAGES:
                 lang_key = "{}_{}".format(key, lang)

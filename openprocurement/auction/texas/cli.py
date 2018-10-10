@@ -33,8 +33,11 @@ def register_utilities(worker_config, args):
     exceptions = []
     init_functions = []
 
+    database = prepare_database(worker_config.get('database', {}))
+    doc = database.get_auction_document(auction_id)
+
     # Initializing datasource
-    if args.standalone:
+    if args.standalone or doc.get('standalone'):
         datasource_config = {'type': 'test'}
     else:
         datasource_config = worker_config.get('datasource', {})

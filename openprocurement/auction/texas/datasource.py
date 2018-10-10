@@ -95,6 +95,7 @@ class SimpleTestingFileDataSource(object):
 
             new_start_time = (datetime.now(tzlocal()) + pause_seconds).isoformat()
             auction_data['data']['auctionPeriod']['startDate'] = new_start_time
+            auction_data['data']['standalone'] = True
 
             return auction_data
 
