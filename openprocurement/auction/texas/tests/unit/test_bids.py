@@ -10,7 +10,7 @@ class TestBidsHandler(unittest.TestCase):
     def setUp(self):
 
         self.bids_handler = BidsHandler()
-        self.bids_handler.context = {'bids_mapping': {'test_bidder_id': 'test_name'}}
+        self.bids_handler.context = {'bids_mapping': {'test_bidder_id': 'test_name'}, 'worker_defaults': {}}
         self.bids_handler.database = mock.MagicMock()
         self.bids_handler.job_service = mock.MagicMock()
         self.test_bid = {'amount': 350, 'bidder_id': 'test_bidder_id', 'time': 'current_time'}
@@ -171,7 +171,7 @@ class TestEndBidStage(TestBidsHandler):
 
         self.mocked_convert_datetime.assert_called_once_with(self.bid_with_name['time'])
         self.mocked_prepare_auction_stages.assert_called_once_with(
-            self.convert_datetime_results[0], expected_bid_document
+            self.convert_datetime_results[0], expected_bid_document, fast_forward=False
         )
 
         self.bids_handler.job_service.add_ending_main_round_job.assert_called_once_with(self.calculated_deadline)
@@ -210,7 +210,7 @@ class TestEndBidStage(TestBidsHandler):
         )
         self.mocked_convert_datetime.assert_any_call(self.bid_with_name['time'])
         self.mocked_prepare_auction_stages.assert_called_once_with(
-            self.convert_datetime_results[0], expected_bid_document
+            self.convert_datetime_results[0], expected_bid_document, fast_forward=False
         )
 
         self.assertEqual(self.mocked_set_specific_hour.call_count, 1)

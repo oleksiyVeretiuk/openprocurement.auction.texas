@@ -80,7 +80,8 @@ class BidsHandler(object):
 
             pause, main_round = utils.prepare_auction_stages(
                 utils.convert_datetime(bid['time']),
-                bid_document
+                bid_document,
+                fast_forward=self.context['worker_defaults'].get('sandbox_mode', False)
             )
 
             auction_document['stages'].append(pause)
@@ -97,7 +98,8 @@ class BidsHandler(object):
         )
 
         # Adding jobs to scheduler
-        deadline = set_specific_hour(datetime.now(TIMEZONE), DEADLINE_HOUR)
+        deadline_hour = DEADLINE_HOUR if not self.context['worker_defaults'].get('sandbox_mode', False) else 23
+        deadline = set_specific_hour(datetime.now(TIMEZONE), deadline_hour)
 
         if main_round:
             round_start_date = utils.convert_datetime(main_round['start'])

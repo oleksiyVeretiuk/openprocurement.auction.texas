@@ -35,7 +35,10 @@ def prepare_auction_stages(stage_start, auction_data, fast_forward=False):
     stages = [pause_stage, main_round_stage]
 
     stage_start += timedelta(seconds=PAUSE_DURATION)
-    deadline = set_specific_hour(stage_start, DEADLINE_HOUR)
+
+    deadline_hour = DEADLINE_HOUR if not fast_forward else 23
+
+    deadline = set_specific_hour(stage_start, deadline_hour)
     if stage_start < deadline:
 
         planned_end = stage_start + timedelta(seconds=ROUND_DURATION)
