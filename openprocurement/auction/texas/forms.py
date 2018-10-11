@@ -4,7 +4,7 @@ from datetime import datetime
 import wtforms_json
 from flask import request, session, current_app as app
 from wtforms import Form, FloatField, StringField
-from wtforms.validators import InputRequired, ValidationError
+from wtforms.validators import DataRequired, ValidationError
 
 from openprocurement.auction.utils import prepare_extra_journal_fields
 from openprocurement.auction.worker_core.constants import TIMEZONE
@@ -39,13 +39,13 @@ class BidsForm(Form):
     bidder_id = StringField(
         'bidder_id',
         validators=[
-            InputRequired(message=u'No bidder id'),
+            DataRequired(message=u'No bidder id'),
         ]
     )
     bid = FloatField(
         'bid',
         validators=[
-            InputRequired(message=u'Bid amount is required'),
+            DataRequired(message=u'Bid amount is required'),
             validate_bid_value
         ]
     )
@@ -57,17 +57,27 @@ def form_handler():
     current_time = datetime.now(TIMEZONE)
     if form.validate():
         with lock_server(app.context['server_actions']):
-            app.bids_handler.add_bid(form.document['current_stage'],
-                                     {'amount': form.data['bid'],
-                                      'bidder_id': form.data['bidder_id'],
-                                      'time': current_time.isoformat()})
-            app.logger.info(
-                "Bidder {} with client_id {} placed bid {} in {}".format(
-                    form.data['bidder_id'], session['client_id'],
-                    form.data['bid'], current_time.isoformat()
-                ), extra=prepare_extra_journal_fields(request.headers)
-            )
-            return {'status': 'ok', 'data': form.data}
+            ok = app.bids_handler.add_bid(form.document['current_stage'],
+                                          {'amount': form.data['bid'],
+                                           'bidder_id': form.data['bidder_id'],
+                                           'time': current_time.isoformat()})
+            if not isinstance(ok, Exception):
+                app.logger.info(
+                    "Bidder {} with client_id {} placed bid {} in {}".format(
+                        form.data['bidder_id'], session['client_id'],
+                        form.data['bid'], current_time.isoformat()
+                    ), extra=prepare_extra_journal_fields(request.headers)
+                )
+                return {'status': 'ok', 'data': form.data}
+            else:
+                app.logger.info(
+                    "Bidder {} with client_id {} wants place "
+                    "bid {} in {} with errors {}".format(
+                        form.data['bidder_id'], session['client_id'],
+                        form.data['bid'], current_time.isoformat(), repr(ok)
+                    ), extra=prepare_extra_journal_fields(request.headers)
+                )
+                return {"status": "failed", "errors": [[repr(ok)]]}
     else:
         app.logger.info(
             "Bidder {} with client_id {} wants place "
