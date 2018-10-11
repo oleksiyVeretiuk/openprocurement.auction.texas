@@ -41,18 +41,26 @@ class BidsHandler(object):
         )
         # Updating auction document with bid data
         with utils.update_auction_document(self.context, self.database) as auction_document:
-            bid['bidder_name'] = self.context['bids_mapping'].get(bid['bidder_id'], False)
-            result = utils.prepare_results_stage(**bid)
-            auction_document['stages'][current_stage].update(result)
-            results = auction_document['results']
-            bid_index = next((i for i, res in enumerate(results)
-                              if res['bidder_id'] == bid['bidder_id']), None)
-            if bid_index is not None:
-                results[bid_index] = result
-            else:
-                results.append(result)
-            auction_document['results'] = sorting_by_amount(results)
+            try:
+                bid['bidder_name'] = self.context['bids_mapping'].get(bid['bidder_id'], False)
+                result = utils.prepare_results_stage(**bid)
+                auction_document['stages'][current_stage].update(result)
+                results = auction_document['results']
+                bid_index = next((i for i, res in enumerate(results)
+                                  if res['bidder_id'] == bid['bidder_id']), None)
+                if bid_index is not None:
+                    results[bid_index] = result
+                else:
+                    results.append(result)
+                auction_document['results'] = sorting_by_amount(results)
+            except Exception as e:
+                LOGGER.fatal(
+                    "Exception during adding bid. "
+                    "Error: {}".format(e)
+                )
+                return e
         self.end_bid_stage(bid)
+        return True
 
     def end_bid_stage(self, bid):
         request_id = generate_request_id()

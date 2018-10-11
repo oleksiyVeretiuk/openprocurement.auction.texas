@@ -55,7 +55,7 @@ class TestAddBid(TestBidsHandler):
 
         result = self.bids_handler.add_bid(0, self.test_bid)
 
-        self.assertEqual(result, None)
+        self.assertEqual(result, True)
 
         self.mocked_update_auction_document.assert_called_once_with(
             self.bids_handler.context, self.bids_handler.database
@@ -73,7 +73,7 @@ class TestAddBid(TestBidsHandler):
 
         result = self.bids_handler.add_bid(0, self.test_bid)
 
-        self.assertEqual(result, None)
+        self.assertEqual(result, True)
 
         self.mocked_update_auction_document.assert_called_once_with(
             self.bids_handler.context, self.bids_handler.database
@@ -84,6 +84,20 @@ class TestAddBid(TestBidsHandler):
 
         self.assertEqual(auction_document['results'], self.mocked_sorting_by_amount.return_value)
         self.assertEqual(auction_document['stages'][0], self.mocked_prepare_results_stage.return_value)
+
+    def test_add_bid_error(self):
+        exc = Exception('Something went wrong :(')
+        self.mocked_prepare_results_stage.side_effect = exc
+
+        result = self.bids_handler.add_bid(0, self.test_bid)
+
+        self.assertEqual(result, exc)
+        self.mocked_update_auction_document.assert_called_once_with(
+            self.bids_handler.context, self.bids_handler.database
+        )
+        self.mocked_prepare_results_stage.assert_called_once_with(**self.bid_with_name)
+        self.assertEqual(self.mocked_sorting_by_amount.call_count, 0)
+        self.assertEqual(self.mocked_end_bid_stage.call_count, 0)
 
 
 class TestEndBidStage(TestBidsHandler):
