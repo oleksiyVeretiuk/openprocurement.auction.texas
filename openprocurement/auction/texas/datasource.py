@@ -89,18 +89,29 @@ class SimpleTestingFileDataSource(object):
         self.path = '/'.join(__file__.split('/')[:-1]) + self.path
 
     def get_data(self, public=True, with_credentials=False):
-        pause_seconds = timedelta(seconds=120)
         with open(self.path) as f:
             auction_data = json.load(f)
 
-            new_start_time = (datetime.now(tzlocal()) + pause_seconds).isoformat()
-            auction_data['data']['auctionPeriod']['startDate'] = new_start_time
-            auction_data['data']['standalone'] = True
+        pause_seconds = timedelta(seconds=120)
+        new_start_time = (datetime.now(tzlocal()) + pause_seconds).isoformat()
+        auction_data['data']['auctionPeriod']['startDate'] = new_start_time
+        auction_data['data']['standalone'] = True
 
-            return auction_data
+        return auction_data
 
     def update_source_object(self, external_data, db_document, history_data):
-        return True
+        with open(self.path) as f:
+            auction_data = json.load(f)
+        bids = auction_data['data']['bids']
+
+        bids_information = {}
+        for i, bid in enumerate(bids):
+            bids_information.update(
+                {bid['id']:  {'tenderers': [{'name': 'Opened name of bidder # {}'.format(i+1)}]}}
+            )
+
+        new_db_document = open_bidders_name(deepcopy(db_document), bids_information)
+        return new_db_document
 
     def set_participation_urls(self, external_data):
         pass
