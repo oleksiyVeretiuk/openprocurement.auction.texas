@@ -9,6 +9,7 @@ PRESTARTED = 'pre-started'
 MAIN_ROUND = 'english'
 PAUSE = 'pause'
 AUCTION_DEADLINE = 'auction-deadline'
+PREANNOUNCEMENT = 'pre-announcement'
 END = 'announcement'
 
 DEADLINE_HOUR = 17

@@ -17,7 +17,7 @@ from openprocurement.auction.utils import (
     delete_mapping
 )
 from openprocurement.auction.texas.constants import (
-    END
+    END, PREANNOUNCEMENT
 )
 from openprocurement.auction.texas.journal import (
     AUCTION_WORKER_SERVICE_START_NEXT_STAGE,
@@ -107,13 +107,13 @@ class JobService(object):
             "Clear mapping", extra={"JOURNAL_REQUEST_ID": request_id}
         )
 
-        auction_end = datetime.now(TIMEZONE)
-        stage = prepare_end_stage(auction_end)
-
+        stage = {
+            'start': datetime.now(TIMEZONE).isoformat(),
+            'type': PREANNOUNCEMENT,
+        }
         with update_auction_document(self.context, self.database) as auction_document:
             auction_document["stages"].append(stage)
             auction_document["current_stage"] = len(auction_document["stages"]) - 1
-            auction_document['endDate'] = auction_end.isoformat()
 
         auction_protocol = approve_auction_protocol_info_on_announcement(
             self.context['auction_document'], self.context['auction_protocol']
@@ -128,10 +128,15 @@ class JobService(object):
         result = self.datasource.update_source_object(
             self.context['auction_data'], self.context['auction_document'], self.context['auction_protocol']
         )
-        if result:
-            if isinstance(result, dict):
-                self.context['auction_document'] = result
-            self.database.save_auction_document(self.context['auction_document'], self.context['auction_doc_id'])
+        if result and isinstance(result, dict):
+            self.context['auction_document'] = result
+
+        auction_end = datetime.now(TIMEZONE)
+        stage = prepare_end_stage(auction_end)
+        with update_auction_document(self.context, self.database) as auction_document:
+            auction_document["stages"].append(stage)
+            auction_document["current_stage"] = len(auction_document["stages"]) - 1
+            auction_document['endDate'] = auction_end.isoformat()
 
         self.context['end_auction_event'].set()
 
