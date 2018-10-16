@@ -132,7 +132,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.patch_approve_auction_protocol_info_on_announcement = mock.patch(
             'openprocurement.auction.texas.datasource.approve_auction_protocol_info_on_announcement'
         )
-        self.patch_get_active_bids = mock.patch('openprocurement.auction.texas.datasource.get_active_bids')
+        self.patch_get_bids = mock.patch('openprocurement.auction.texas.datasource.get_bids')
         self.patch_open_bidders_name = mock.patch('openprocurement.auction.texas.datasource.open_bidders_name')
 
         self.patch_upload_history = mock.patch.object(self.datasource, 'upload_auction_history_document')
@@ -140,13 +140,13 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
 
         self.mocked_approve_auction_protocol_info_on_announcement = \
             self.patch_approve_auction_protocol_info_on_announcement.start()
-        self.mocked_get_active_bids = self.patch_get_active_bids.start()
+        self.mocked_get_bids = self.patch_get_bids.start()
         self.mocked_open_bidders_name = self.patch_open_bidders_name.start()
         self.mocked_upload_history = self.patch_upload_history.start()
         self.mocked_post_results = self.patch_post_results.start()
 
     def tearDown(self):
-        self.patch_get_active_bids.stop()
+        self.patch_get_bids.stop()
         self.patch_open_bidders_name.stop()
         self.patch_upload_history.stop()
         self.patch_post_results.stop()
@@ -159,7 +159,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.mocked_post_results.return_value = post_response_data
 
         bids_result_data = {'bids': 'result'}
-        self.mocked_get_active_bids.return_value = bids_result_data
+        self.mocked_get_bids.return_value = bids_result_data
 
         new_db_document = {'db_document': 'with opened names'}
         self.mocked_open_bidders_name.return_value = new_db_document
@@ -174,8 +174,8 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_post_results.call_count, 1)
         self.mocked_post_results.assert_called_with(self.external_data, self.db_document)
 
-        self.assertEqual(self.mocked_get_active_bids.call_count, 1)
-        self.mocked_get_active_bids.assert_called_with(post_response_data)
+        self.assertEqual(self.mocked_get_bids.call_count, 1)
+        self.mocked_get_bids.assert_called_with(post_response_data)
 
         self.assertEqual(self.mocked_open_bidders_name.call_count, 1)
         self.mocked_open_bidders_name.assert_called_with(self.db_document, bids_result_data)
@@ -196,7 +196,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_post_results.call_count, 1)
         self.mocked_post_results.assert_called_with(self.external_data, self.db_document)
 
-        self.assertEqual(self.mocked_get_active_bids.call_count, 0)
+        self.assertEqual(self.mocked_get_bids.call_count, 0)
 
         self.assertEqual(self.mocked_open_bidders_name.call_count, 0)
 
@@ -215,7 +215,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_post_results.call_count, 1)
         self.mocked_post_results.assert_called_with(self.external_data, self.db_document)
 
-        self.assertEqual(self.mocked_get_active_bids.call_count, 0)
+        self.assertEqual(self.mocked_get_bids.call_count, 0)
 
         self.assertEqual(self.mocked_open_bidders_name.call_count, 0)
 
@@ -231,7 +231,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.mocked_post_results.return_value = post_response_data
 
         bids_result_data = {'bids': 'result'}
-        self.mocked_get_active_bids.return_value = bids_result_data
+        self.mocked_get_bids.return_value = bids_result_data
 
         new_db_document = {'db_document': 'with opened names'}
         self.mocked_open_bidders_name.return_value = new_db_document
@@ -254,8 +254,8 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_post_results.call_count, 1)
         self.mocked_post_results.assert_called_with(self.external_data, self.db_document)
 
-        self.assertEqual(self.mocked_get_active_bids.call_count, 1)
-        self.mocked_get_active_bids.assert_called_with(post_response_data)
+        self.assertEqual(self.mocked_get_bids.call_count, 1)
+        self.mocked_get_bids.assert_called_with(post_response_data)
 
         self.assertEqual(self.mocked_open_bidders_name.call_count, 1)
         self.mocked_open_bidders_name.assert_called_with(self.db_document, bids_result_data)
@@ -272,7 +272,7 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.mocked_post_results.return_value = post_response_data
 
         bids_result_data = {'bids': 'result'}
-        self.mocked_get_active_bids.return_value = bids_result_data
+        self.mocked_get_bids.return_value = bids_result_data
 
         new_db_document = {'db_document': 'with opened names'}
         self.mocked_open_bidders_name.return_value = new_db_document
@@ -295,8 +295,8 @@ class TestUpdateSourceObject(TestOpenProcurementAPIDataSource):
         self.assertEqual(self.mocked_post_results.call_count, 1)
         self.mocked_post_results.assert_called_with(self.external_data, self.db_document)
 
-        self.assertEqual(self.mocked_get_active_bids.call_count, 1)
-        self.mocked_get_active_bids.assert_called_with(post_response_data)
+        self.assertEqual(self.mocked_get_bids.call_count, 1)
+        self.mocked_get_bids.assert_called_with(post_response_data)
 
         self.assertEqual(self.mocked_open_bidders_name.call_count, 1)
         self.mocked_open_bidders_name.assert_called_with(self.db_document, bids_result_data)

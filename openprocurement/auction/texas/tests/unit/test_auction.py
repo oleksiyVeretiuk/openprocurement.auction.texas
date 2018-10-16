@@ -319,15 +319,15 @@ class TestPostAnnounce(AuctionInitSetup):
         self.mocked_utils.update_auction_document.return_value.__enter__.return_value = auction_document
 
         bids_info = 'bids info'
-        self.mocked_utils.get_active_bids.return_value = bids_info
+        self.mocked_utils.get_bids.return_value = bids_info
 
         self.auction.post_announce()
 
         self.assertEqual(self.mock_db.get_auction_document.call_count, 1)
         self.mock_db.get_auction_document.assert_called_with(self.auction.context['auction_doc_id'])
 
-        self.assertEqual(self.mocked_utils.get_active_bids.call_count, 1)
-        self.mocked_utils.get_active_bids.assert_called_with(auction_from_ds)
+        self.assertEqual(self.mocked_utils.get_bids.call_count, 1)
+        self.mocked_utils.get_bids.assert_called_with(auction_from_ds)
 
         self.assertEqual(self.mock_datasource.get_data.call_count, 1)
         self.mock_datasource.get_data.assert_called_with(with_credentials=True)

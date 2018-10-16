@@ -18,7 +18,7 @@ from openprocurement.auction.texas.utils import (
     prepare_end_stage,
     get_round_ending_time,
     set_specific_hour,
-    get_active_bids,
+    get_bids,
     open_bidders_name,
     prepare_auction_protocol,
     prepare_bid_result,
@@ -187,36 +187,22 @@ class TestGetActiveBids(unittest.TestCase):
 
     def test_bids_with_active_status(self):
         active_bid = {'status': 'active', 'id': 'active_bid'}
+        draft_bid = {'status': 'draft', 'id': 'draft_bid'}
+
         auction_doc = {
             'data': {
                 'bids': [
-                    {'status': 'draft', 'id': 'draft_bid'},
+                    draft_bid,
                     active_bid
                 ]
             }
         }
 
         expected = {
+            draft_bid['id']: draft_bid,
             active_bid['id']: active_bid
         }
-        only_active_bids = get_active_bids(auction_doc)
-        self.assertEqual(expected, only_active_bids)
-
-    def test_bids_without_status(self):
-        without_status = {'id': 'active_bid'}
-        auction_doc = {
-            'data': {
-                'bids': [
-                    {'status': 'draft', 'id': 'draft_bid'},
-                    without_status
-                ]
-            }
-        }
-
-        expected = {
-            without_status['id']: without_status
-        }
-        only_active_bids = get_active_bids(auction_doc)
+        only_active_bids = get_bids(auction_doc)
         self.assertEqual(expected, only_active_bids)
 
 
@@ -235,6 +221,12 @@ class TestOpenBiddersName(unittest.TestCase):
             },
             'bidder_id_2': {
                 'tenderers': [{'name': 'Name of second bidder'}]
+            },
+            'bidder_id_3': {
+                'tenderers': [{'name': 'Name of third bidder'}]
+            },
+            'bidder_id_4': {
+                'tenderers': [{'name': 'Name of fourth bidder'}]
             },
         }
 
