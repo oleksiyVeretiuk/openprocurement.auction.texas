@@ -4,7 +4,6 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 
 from zope.component.globalregistry import getGlobalSiteManager
-from couchdb import Database, Session
 from gevent.event import Event
 
 from openprocurement.auction.texas.journal import (
@@ -171,7 +170,7 @@ class Auction(object):
         )
         auction = self.datasource.get_data(with_credentials=True)
 
-        bids_information = utils.get_active_bids(auction)
+        bids_information = utils.get_bids(auction)
         with utils.update_auction_document(self.context, self.database) as auction_document:
             utils.open_bidders_name(auction_document, bids_information)
 

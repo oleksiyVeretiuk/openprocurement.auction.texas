@@ -84,12 +84,11 @@ def set_specific_hour(date_time, hour):
     )
 
 
-def get_active_bids(results):
+def get_bids(results):
 
     bids_information = dict([
         (bid["id"], bid)
         for bid in results["data"].get("bids", [])
-        if bid.get("status", "active") == "active"
     ])
 
     return bids_information
@@ -184,6 +183,7 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
         "time": datetime.now(TIMEZONE).isoformat(),
         "bids": []
     }
+
     for bid in auction_document['results']:
         bid_result_audit = prepare_bid_result(bid)
         if approved:

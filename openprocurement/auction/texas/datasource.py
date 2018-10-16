@@ -23,7 +23,7 @@ from openprocurement.auction.utils import (
     calculate_hash
 )
 from openprocurement.auction.texas.utils import (
-    get_active_bids,
+    get_bids,
     open_bidders_name,
     approve_auction_protocol_info_on_announcement
 )
@@ -244,7 +244,9 @@ class OpenProcurementAPIDataSource(object):
         results = self._post_results_data(external_data, db_document)
 
         if results:
-            bids_information = get_active_bids(results)
+
+            bids_information = get_bids(results)
+
             new_db_document = open_bidders_name(deepcopy(db_document), bids_information)
 
             if doc_id and bids_information:
