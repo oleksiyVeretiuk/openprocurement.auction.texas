@@ -8,7 +8,7 @@ from openprocurement.auction.worker_core.constants import TIMEZONE
 from openprocurement.auction.worker_core.utils import prepare_service_stage
 
 from openprocurement.auction.texas.constants import (
-    PAUSE_DURATION, DEADLINE_HOUR, END, MAIN_ROUND, PAUSE, ROUND_DURATION
+    PAUSE_DURATION, END, MAIN_ROUND, PAUSE, ROUND_DURATION
 )
 
 
@@ -26,7 +26,7 @@ def prepare_results_stage(bidder_id="", bidder_name="", amount="", time=""):
     return stage
 
 
-def prepare_auction_stages(stage_start, auction_data, fast_forward=False):
+def prepare_auction_stages(stage_start, auction_data, deadline_hour, fast_forward=False):
     pause_stage = prepare_service_stage(
         start=stage_start.isoformat(), type=PAUSE
     )
@@ -35,13 +35,11 @@ def prepare_auction_stages(stage_start, auction_data, fast_forward=False):
 
     stage_start += timedelta(seconds=PAUSE_DURATION)
 
-    deadline_hour = DEADLINE_HOUR if not fast_forward else 23
-
-    deadline = set_specific_hour(stage_start, deadline_hour)
-    if stage_start < deadline:
+    deadline = set_specific_hour(stage_start, deadline_hour) if deadline_hour else None
+    if deadline is None or stage_start < deadline:
 
         planned_end = stage_start + timedelta(seconds=ROUND_DURATION)
-        planned_end = planned_end if planned_end < deadline else deadline
+        planned_end = planned_end if deadline is None or planned_end < deadline else deadline
 
         main_round_stage.update({
             'start': stage_start.isoformat(),
@@ -65,7 +63,7 @@ def prepare_end_stage(start):
 
 def get_round_ending_time(start_date, duration, deadline):
     default_round_ending_time = start_date + timedelta(seconds=duration)
-    if default_round_ending_time < deadline:
+    if deadline is None or default_round_ending_time < deadline:
         return default_round_ending_time
     return deadline
 

@@ -26,7 +26,6 @@ from openprocurement.auction.texas import utils
 from openprocurement.auction.texas.constants import (
     MULTILINGUAL_FIELDS,
     ADDITIONAL_LANGUAGES,
-    DEADLINE_HOUR,
     ROUND_DURATION,
     DEFAULT_AUCTION_TYPE
 )
@@ -194,12 +193,14 @@ class Auction(object):
             pause, main_round = utils.prepare_auction_stages(
                 self.startDate,
                 deepcopy(auction_document),
+                self.context['worker_defaults']['deadline']['deadline_hour'],
                 fast_forward=True
             )
         else:
             pause, main_round = utils.prepare_auction_stages(
                 self.startDate,
-                deepcopy(auction_document)
+                deepcopy(auction_document),
+                self.context['worker_defaults']['deadline']['deadline_hour']
             )
 
         auction_document['stages'] = [pause, main_round]
@@ -312,15 +313,6 @@ class Auction(object):
     def _set_start_date(self):
         self.startDate = utils.convert_datetime(
             self._auction_data['data'].get('auctionPeriod', {}).get('startDate', '')
-        )
-
-        deadline_hour = DEADLINE_HOUR if not self.worker_defaults.get('sandbox_mode', False) else 23
-
-        self.deadline_time = datetime(
-            self.startDate.year,
-            self.startDate.month,
-            self.startDate.day,
-            deadline_hour
         )
 
     def _set_bidders_data(self):

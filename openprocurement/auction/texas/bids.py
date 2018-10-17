@@ -9,7 +9,7 @@ from openprocurement.auction.worker_core.constants import TIMEZONE
 
 from openprocurement.auction.texas import utils
 from openprocurement.auction.texas.context import IContext
-from openprocurement.auction.texas.constants import ROUND_DURATION, DEADLINE_HOUR
+from openprocurement.auction.texas.constants import ROUND_DURATION
 from openprocurement.auction.texas.database import IDatabase
 from openprocurement.auction.texas.scheduler import IJobService
 from openprocurement.auction.texas.scheduler import SCHEDULER
@@ -89,6 +89,7 @@ class BidsHandler(object):
             pause, main_round = utils.prepare_auction_stages(
                 utils.convert_datetime(bid['time']),
                 bid_document,
+                self.context['worker_defaults']['deadline']['deadline_hour'],
                 fast_forward=self.context['worker_defaults'].get('sandbox_mode', False)
             )
 
@@ -106,8 +107,8 @@ class BidsHandler(object):
         )
 
         # Adding jobs to scheduler
-        deadline_hour = DEADLINE_HOUR if not self.context['worker_defaults'].get('sandbox_mode', False) else 23
-        deadline = set_specific_hour(datetime.now(TIMEZONE), deadline_hour)
+        deadline_hour = self.context['worker_defaults']['deadline']['deadline_hour']
+        deadline = None if deadline_hour is None else set_specific_hour(datetime.now(TIMEZONE), deadline_hour)
 
         if main_round:
             round_start_date = utils.convert_datetime(main_round['start'])

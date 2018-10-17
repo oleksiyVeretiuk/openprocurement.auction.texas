@@ -15,6 +15,7 @@ from openprocurement.auction.utils import check
 from openprocurement.auction.worker_core import constants as C
 
 from openprocurement.auction.texas.auction import Auction, SCHEDULER
+from openprocurement.auction.texas.constants import DEADLINE_HOUR
 from openprocurement.auction.texas.context import prepare_context, IContext
 from openprocurement.auction.texas.database import prepare_database, IDatabase
 from openprocurement.auction.texas.datasource import prepare_datasource, IDataSource
@@ -81,7 +82,17 @@ def register_utilities(worker_config, args):
     # Updating context
     context = gsm.queryUtility(IContext)
     context['auction_doc_id'] = auction_id
+
+    deadline_defaults = {
+            'enabled': True,
+            'deadline_hour': DEADLINE_HOUR
+    }
+    deadline_defaults.update(worker_config.get('deadline', {}))
+    if not deadline_defaults['enabled']:
+        deadline_defaults['deadline_hour'] = None
+    worker_config['deadline'] = deadline_defaults
     context['worker_defaults'] = worker_config
+
     # Initializing semaphore which is used for locking WSGI server actions
     # during applying bids or updating auction document
     context['server_actions'] = BoundedSemaphore()
