@@ -97,7 +97,25 @@ class TestPrepareAuctionStages(unittest.TestCase):
                 'time': ''
             }
         ]
-        stages = prepare_auction_stages(stage_start, self.auction_data)
+        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
+        self.assertEqual(stages, expected)
+
+    def test_generating_stages_without_deadline(self):
+        stage_start = datetime.now()
+        expected = [
+            {
+                'start': stage_start.isoformat(),
+                'type': PAUSE,
+            },
+            {
+                'start': (stage_start + timedelta(seconds=PAUSE_DURATION)).isoformat(),
+                'planned_end': (stage_start + timedelta(seconds=ROUND_DURATION+PAUSE_DURATION)).isoformat(),
+                'type': MAIN_ROUND,
+                'amount': self.auction_data['value']['amount'] + self.auction_data['minimalStep']['amount'],
+                'time': ''
+            }
+        ]
+        stages = prepare_auction_stages(stage_start, self.auction_data, None)
         self.assertEqual(stages, expected)
 
     def test_planned_end_after_deadline(self):
@@ -117,9 +135,8 @@ class TestPrepareAuctionStages(unittest.TestCase):
                 'time': ''
             }
         ]
-        stages = prepare_auction_stages(stage_start, self.auction_data)
+        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
         self.assertEqual(stages, expected)
-
 
     def test_generating_stages_after_deadline(self):
         stage_start = datetime.now().replace(hour=DEADLINE_HOUR + 2)
@@ -132,7 +149,7 @@ class TestPrepareAuctionStages(unittest.TestCase):
             {}
         ]
 
-        stages = prepare_auction_stages(stage_start, self.auction_data)
+        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
         self.assertEqual(stages, expected)
 
 
@@ -156,6 +173,15 @@ class TestGetRoundEndingTime(unittest.TestCase):
         start_date = deadline - timedelta(hours=2)
         duration = 100
 
+        expected = start_date + timedelta(seconds=duration)
+
+        end_round_date = get_round_ending_time(start_date, duration, deadline)
+        self.assertEqual(end_round_date, expected)
+
+    def test_if_no_deadline(self):
+        deadline = None
+        start_date = datetime.now()
+        duration = 100
         expected = start_date + timedelta(seconds=duration)
 
         end_round_date = get_round_ending_time(start_date, duration, deadline)
