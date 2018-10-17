@@ -184,6 +184,18 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
         "bids": []
     }
 
+    if approved:
+        auction_protocol['timeline']['auction_start']['initial_bids'] = []
+        for bid in auction_document['initial_bids']:
+            auction_protocol['timeline']['auction_start']['initial_bids'].append({
+                'bidder': bid['bidder_id'],
+                'date': bid['time'],
+                'amount': bid['amount'],
+                'bid_number': approved[bid['bidder_id']].get('bidNumber', ''),
+                'identification': approved[bid['bidder_id']].get('tenderers', []),
+                'owner': approved[bid['bidder_id']].get('owner', '')
+            })
+
     for bid in auction_document['results']:
         bid_result_audit = prepare_bid_result(bid)
         if approved:
