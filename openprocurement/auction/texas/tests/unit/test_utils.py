@@ -470,11 +470,28 @@ class TestApproveAuctionProtocolInfoAnnouncement(unittest.TestCase):
                     'bidder_id': 'id_of_2_round_bidder',
                     'amount': 10000,
                 }
+            ],
+            'initial_bids': [
+                {
+                    'time': '1_bid_create_date',
+                    'bidder_id': 'id_of_1_round_bidder',
+                    'amount': 1000,
+                },
+                {
+                    'time': '2_bid_create_date',
+                    'bidder_id': 'id_of_2_round_bidder',
+                    'amount': 1000,
+                }
             ]
         }
 
         self.auction_protocol = {
-            'timeline': {}
+            'timeline': {
+                'auction_start': {
+                    'initial_bids': []
+                }
+            },
+
         }
 
         self.patch_datetime = mock.patch('openprocurement.auction.texas.utils.datetime')
@@ -494,6 +511,9 @@ class TestApproveAuctionProtocolInfoAnnouncement(unittest.TestCase):
 
         expected = {
             'timeline': {
+                'auction_start': {
+                    'initial_bids': []
+                },
                 'results': {
                     'time': self.isoformat_value,
                     'bids': [
@@ -523,13 +543,34 @@ class TestApproveAuctionProtocolInfoAnnouncement(unittest.TestCase):
         approved = {
             'id_of_1_round_bidder': {
                 'tenderers': ['tenderer1', 'tenderer2'],
-                'owner': 'owner_of_bid'
+                'owner': 'owner_of_bid',
+                'bidNumber': 1
             },
             'id_of_2_round_bidder': {}
         }
 
         expected = {
             'timeline': {
+                'auction_start': {
+                    'initial_bids': [
+                        {
+                            'date': '1_bid_create_date',
+                            'bidder': 'id_of_1_round_bidder',
+                            'amount': 1000,
+                            'bid_number': 1,
+                            'identification': ['tenderer1', 'tenderer2'],
+                            'owner': 'owner_of_bid'
+                        },
+                        {
+                            'date': '2_bid_create_date',
+                            'bidder': 'id_of_2_round_bidder',
+                            'amount': 1000,
+                            'bid_number': '',
+                            'identification': [],
+                            'owner': ''
+                        }
+                    ]
+                },
                 'results': {
                     'time': self.isoformat_value,
                     'bids': [
