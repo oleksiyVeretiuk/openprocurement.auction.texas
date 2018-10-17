@@ -30,7 +30,6 @@ from openprocurement.auction.texas.utils import (
     lock_server,
     update_auction_document,
     prepare_end_stage,
-    send_gong_event,
     approve_auction_protocol_info_on_announcement,
 )
 
@@ -99,7 +98,6 @@ class JobService(object):
             "Stop server", extra={"JOURNAL_REQUEST_ID": request_id}
         )
         if self.context.get('server'):
-            send_gong_event(self.context['server'].application)
             self.context['server'].stop()
 
         delete_mapping(self.context['worker_defaults'], self.context['auction_doc_id'])

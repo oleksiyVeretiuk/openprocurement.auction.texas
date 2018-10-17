@@ -25,7 +25,6 @@ from openprocurement.auction.texas.utils import (
     approve_auction_protocol_info,
     approve_auction_protocol_info_on_announcement,
     approve_auction_protocol_info_on_bids_stage,
-    send_gong_event
 )
 
 

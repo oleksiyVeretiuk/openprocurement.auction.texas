@@ -4,7 +4,6 @@ import iso8601
 from contextlib import contextmanager
 from datetime import datetime, time, timedelta
 
-from openprocurement.auction.event_source import send_event
 from openprocurement.auction.worker_core.constants import TIMEZONE
 from openprocurement.auction.worker_core.utils import prepare_service_stage
 
@@ -203,13 +202,3 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
             bid_result_audit["owner"] = approved[bid['bidder_id']].get('owner', '')
         auction_protocol['timeline']['results']['bids'].append(bid_result_audit)
     return auction_protocol
-
-
-def send_gong_event(app):
-    with app.app_context():
-        for bidder_id in app.auction_bidders:
-            send_event(
-                bidder_id,
-                "Gong is ringing",
-                "Gong"
-            )
