@@ -94,6 +94,12 @@ class SimpleTestingFileDataSource(object):
 
         pause_seconds = timedelta(seconds=120)
         new_start_time = (datetime.now(tzlocal()) + pause_seconds).isoformat()
+        auction_data['data']['title'] = '[TEST]' + auction_data['data']['title']
+        if 'title_en' in auction_data['data']:
+            auction_data['data']['title_en'] = '[TEST]' + auction_data['data']['title_en']
+        if 'title_ru' in auction_data['data']:
+            auction_data['data']['title_ru'] = '[TEST]' + auction_data['data']['title_ru']
+
         auction_data['data']['auctionPeriod']['startDate'] = new_start_time
         auction_data['data']['standalone'] = True
 
@@ -107,7 +113,12 @@ class SimpleTestingFileDataSource(object):
         bids_information = {}
         for i, bid in enumerate(bids):
             bids_information.update(
-                {bid['id']:  {'tenderers': [{'name': 'Opened name of bidder # {}'.format(i+1)}]}}
+                {
+                    bid['id']:  {
+                        'tenderers': [{'name': 'Opened name of bidder # {}'.format(i+1)}],
+                        'bidNumber': str(i+1)
+                    }
+                }
             )
 
         new_db_document = open_bidders_name(deepcopy(db_document), bids_information)

@@ -40,6 +40,7 @@ def register_utilities(worker_config, args):
     # Initializing datasource
     if args.standalone or doc.get('standalone'):
         datasource_config = {'type': 'test'}
+        worker_config['deadline'] = {'enabled': False}
     else:
         datasource_config = worker_config.get('datasource', {})
     datasource_config.update(auction_id=auction_id)
