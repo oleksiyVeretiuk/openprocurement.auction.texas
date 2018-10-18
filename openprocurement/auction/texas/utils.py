@@ -96,13 +96,13 @@ def open_bidders_name(auction_document, bids_information):
         for index, stage in enumerate(auction_document[field]):
             if 'bidder_id' in stage and stage['bidder_id'] in bids_information:
                 auction_document[field][index].update({
+                    'bidNumber': bids_information[stage['bidder_id']].get('bidNumber', ''),
                     "label": {
                         'uk': bids_information[stage['bidder_id']]["tenderers"][0]["name"],
                         'en': bids_information[stage['bidder_id']]["tenderers"][0]["name"],
                         'ru': bids_information[stage['bidder_id']]["tenderers"][0]["name"],
                     }
                 })
-                auction_document[field][index]['bidNumber'] = bids_information[stage['bidder_id']].get('bidNumber', '')
     return auction_document
 
 
@@ -198,7 +198,7 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
         bid_result_audit = prepare_bid_result(bid)
         if approved:
             bid_result_audit['bid_number'] = approved[bid['bidder_id']].get('bidNumber', '')
-            bid_result_audit["identification"] = approved[bid['bidder_id']].get('tenderers', [])
-            bid_result_audit["owner"] = approved[bid['bidder_id']].get('owner', '')
+            bid_result_audit['identification'] = approved[bid['bidder_id']].get('tenderers', [])
+            bid_result_audit['owner'] = approved[bid['bidder_id']].get('owner', '')
         auction_protocol['timeline']['results']['bids'].append(bid_result_audit)
     return auction_protocol
