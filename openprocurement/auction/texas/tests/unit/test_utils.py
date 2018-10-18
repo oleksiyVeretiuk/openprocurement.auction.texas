@@ -242,6 +242,7 @@ class TestOpenBiddersName(unittest.TestCase):
 
         bids_information = {
             'bidder_id_1': {
+                'bidNumber': 1,
                 'tenderers': [{'name': 'Name of first bidder'}]
             },
             'bidder_id_2': {
@@ -260,6 +261,7 @@ class TestOpenBiddersName(unittest.TestCase):
             'initial_bids': [
                 {
                     'bidder_id': 'bidder_id_1',
+                    'bidNumber': 1,
                     'label': {
                         'uk': 'Name of first bidder',
                         'en': 'Name of first bidder',
@@ -268,6 +270,7 @@ class TestOpenBiddersName(unittest.TestCase):
                 },
                 {
                     'bidder_id': 'bidder_id_2',
+                    'bidNumber': '',
                     'label': {
                         'uk': 'Name of second bidder',
                         'en': 'Name of second bidder',
@@ -278,6 +281,7 @@ class TestOpenBiddersName(unittest.TestCase):
             'results': [
                 {
                     'bidder_id': 'bidder_id_2',
+                    'bidNumber': '',
                     'label': {
                         'uk': 'Name of second bidder',
                         'en': 'Name of second bidder',
@@ -286,6 +290,7 @@ class TestOpenBiddersName(unittest.TestCase):
                 },
                 {
                     'bidder_id': 'bidder_id_1',
+                    'bidNumber': 1,
                     'label': {
                         'uk': 'Name of first bidder',
                         'en': 'Name of first bidder',
@@ -297,6 +302,7 @@ class TestOpenBiddersName(unittest.TestCase):
                 {'without': 'bidder_id'},
                 {
                     'bidder_id': 'bidder_id_1',
+                    'bidNumber': 1,
                     'label': {
                         'uk': 'Name of first bidder',
                         'en': 'Name of first bidder',
@@ -305,6 +311,7 @@ class TestOpenBiddersName(unittest.TestCase):
                 },
                 {
                     'bidder_id': 'bidder_id_2',
+                    'bidNumber': '',
                     'label': {
                         'uk': 'Name of second bidder',
                         'en': 'Name of second bidder',
@@ -312,6 +319,7 @@ class TestOpenBiddersName(unittest.TestCase):
                     }
                 },                {
                     'bidder_id': 'bidder_id_1',
+                    'bidNumber': 1,
                     'label': {
                         'uk': 'Name of first bidder',
                         'en': 'Name of first bidder',
@@ -604,14 +612,16 @@ class TestApproveAuctionProtocolInfoAnnouncement(unittest.TestCase):
                             'bidder': 'id_of_1_round_bidder',
                             'amount': 5000,
                             'identification': ['tenderer1', 'tenderer2'],
-                            'owner': 'owner_of_bid'
+                            'owner': 'owner_of_bid',
+                            'bid_number': 1,
                         },
                         {
                             'time': 'end_2_round_time',
                             'bidder': 'id_of_2_round_bidder',
                             'amount': 10000,
                             'identification': [],
-                            'owner': ''
+                            'owner': '',
+                            'bid_number': '',
                         }
                     ]
                 }
