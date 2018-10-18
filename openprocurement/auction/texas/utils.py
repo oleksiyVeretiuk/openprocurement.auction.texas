@@ -102,6 +102,7 @@ def open_bidders_name(auction_document, bids_information):
                         'ru': bids_information[stage['bidder_id']]["tenderers"][0]["name"],
                     }
                 })
+                auction_document[field][index]['bidNumber'] = bids_information[stage['bidder_id']].get('bidNumber', '')
     return auction_document
 
 
@@ -196,6 +197,7 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
     for bid in auction_document['results']:
         bid_result_audit = prepare_bid_result(bid)
         if approved:
+            bid_result_audit['bid_number'] = approved[bid['bidder_id']].get('bidNumber', '')
             bid_result_audit["identification"] = approved[bid['bidder_id']].get('tenderers', [])
             bid_result_audit["owner"] = approved[bid['bidder_id']].get('owner', '')
         auction_protocol['timeline']['results']['bids'].append(bid_result_audit)
