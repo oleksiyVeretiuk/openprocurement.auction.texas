@@ -4,6 +4,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 
 from zope.component.globalregistry import getGlobalSiteManager
+from yaml import safe_dump as yaml_dump
 from gevent.event import Event
 
 from openprocurement.auction.texas.journal import (
@@ -160,8 +161,74 @@ class Auction(object):
             LOGGER.info("Auction {} not found".format(self.context['auction_doc_id']),
                         extra={'MESSAGE_ID': AUCTION_WORKER_SERVICE_AUCTION_NOT_FOUND})
 
-    def post_auction_protocol(self):
-        pass
+    def _prepare_auction_protocol(self):
+        """
+        prepare valid auction_protocol object using data of
+        completed auction from database and save it to context util
+        """
+        request_id = generate_request_id()
+        auction = self.datasource.get_data(with_credentials=True)
+        self.context['auction_data'] = auction
+
+        auction_protocol = utils.prepare_auction_protocol(self.context)
+        auction_document = self.database.get_auction_document(self.context['auction_doc_id'])
+
+        self.bidders_data = [
+            {
+                'id': bid['id'],
+                'date': bid['date'],
+                'value': bid['value'],
+                'owner': bid.get('owner', '')
+            }
+            for bid in auction['data'].get('bids', [])
+            if bid.get('status', 'active') == 'active'
+        ]
+        bids = deepcopy(self.bidders_data)
+        bids_info = sorting_start_bids_by_amount(bids)
+        self._set_mapping()
+        for index, bid in enumerate(bids_info):
+            auction_protocol['timeline']['auction_start']['initial_bids'].append({
+                'bidder': bid['id'],
+                'date': bid['date'],
+                'amount': auction_document['value']['amount'],
+                'bid_number': self.bids_mapping[bid['id']]
+            })
+
+        utils.approve_auction_protocol_info(auction_document, auction_protocol)
+        utils.approve_auction_protocol_info_on_announcement(
+            auction_document, auction_protocol
+        )
+        auction_protocol['timeline']['auction_start']['time'] = auction_document['stages'][0]['start']
+        auction_protocol['timeline']['results']['time'] = auction_document['stages'][-1]['start']
+        LOGGER.info(
+            'Audit data: \n {}'.format(yaml_dump(auction_protocol)),
+            extra={"JOURNAL_REQUEST_ID": request_id}
+        )
+        LOGGER.info(auction_protocol)
+        self.context['auction_document'] = auction_document
+        self.context['auction_protocol'] = auction_protocol
+
+    def post_auction_protocol(self, doc_id=None):
+        """
+        prepare auction_protocol object and post it to datasource if doc_id
+        is not provided, or update existing document with opened bidders
+        information if doc_id was passed as argument
+        """
+        self._prepare_auction_protocol()
+
+        auction_document = self.context['auction_document']
+        auction_protocol = self.context['auction_protocol']
+        auction = self.context['auction_data']
+
+        if doc_id:
+            approved = utils.get_bids(auction)
+            utils.approve_auction_protocol_info_on_announcement(
+                auction_document, auction_protocol, approved
+            )
+            self.datasource.upload_auction_history_document(auction_protocol, doc_id)
+        else:
+            doc_id = self.datasource.upload_auction_history_document(auction_protocol)
+            return doc_id
 
     def post_announce(self):
         self.context['auction_document'] = self.database.get_auction_document(
@@ -172,6 +239,11 @@ class Auction(object):
         bids_information = utils.get_bids(auction)
         with utils.update_auction_document(self.context, self.database) as auction_document:
             utils.open_bidders_name(auction_document, bids_information)
+
+    def post_auction_results(self):
+        auction = self.datasource.get_data(public=False)
+        auction_document = self.database.get_auction_document(self.context['auction_doc_id'])
+        self.datasource._post_results_data(auction,auction_document)
 
     def prepare_auction_document(self):
         public_document = self.database.get_auction_document(self.context['auction_doc_id'])

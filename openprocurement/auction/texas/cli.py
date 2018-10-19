@@ -114,6 +114,8 @@ def main():
     parser.add_argument('--standalone', dest='standalone', action='store_const',
                         const=True, default=False,
                         help='Use TestingFileDataSource for auction')
+    parser.add_argument('--doc_id', dest='doc_id', type=str, default=False,
+                        help='id of existing auction protocol document')
 
     args = parser.parse_args()
 
@@ -145,12 +147,14 @@ def main():
         auction.prepare_auction_document()
     elif args.cmd == 'announce':
         auction.post_announce()
+    elif args.cmd == 'post_results':
+        auction.post_auction_results()
     elif args.cmd == 'cancel':
         auction.cancel_auction()
     elif args.cmd == 'reschedule':
         auction.reschedule_auction()
-    elif args.cmd == 'prepare_auction_protocol':
-        auction.post_auction_protocol()
+    elif args.cmd == 'post_auction_protocol':
+        print auction.post_auction_protocol(args.doc_id)
 
 
 if __name__ == "__main__":
