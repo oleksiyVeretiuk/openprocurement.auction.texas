@@ -154,17 +154,9 @@ def prepare_bid_result(bid):
 def approve_auction_protocol_info(auction_document, auction_protocol):
     stages = auction_document['stages']
     for index, stage in enumerate(stages):
-        if stage['type'] == PAUSE:
-            auction_protocol['timeline']['stage_{}'.format(index)] = {
-                'pause': {
-                    'start': stage['start'],
-                    'end': stages[index+1]['start']
-                }
-            }
-        if stage['type'] == MAIN_ROUND:
-            auction_protocol['timeline']['stage_{}'.format(index)] = {
-                'bids': prepare_bid_result(stage) if stage.get('time') else {}
-            }
+        if stage['type'] == MAIN_ROUND and stage.get('time'):
+            round_number = index / 2 + 1
+            auction_protocol['timeline']['round_{}'.format(round_number)] = prepare_bid_result(stage)
     return auction_protocol
 
 

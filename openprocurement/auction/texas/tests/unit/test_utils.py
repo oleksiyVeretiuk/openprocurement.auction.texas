@@ -432,20 +432,11 @@ class TestApproveAuctionProtocolInfo(unittest.TestCase):
 
         expected = {
             'timeline': {
-                'stage_0': {
-                    'pause': {
-                        'start': 'pause_start',
-                        'end': 'main_round_start'
-                    }
+                'round_1': {
+                    'time': 'end_round_time',
+                    'bidder': 'id_of_round_bidder',
+                    'amount': 5000
                 },
-                'stage_1': {
-                    'bids': {
-                        'time': 'end_round_time',
-                        'bidder': 'id_of_round_bidder',
-                        'amount': 5000
-                    }
-                },
-                'stage_2': {'bids': {}}
             }
         }
 
