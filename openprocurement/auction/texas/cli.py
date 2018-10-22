@@ -44,6 +44,7 @@ def register_utilities(worker_config, args):
     else:
         datasource_config = worker_config.get('datasource', {})
     datasource_config.update(auction_id=auction_id)
+    worker_config['datasource'] = datasource_config
     init_functions.append(
         (prepare_datasource, (datasource_config,), 'datasource', IDataSource)
     )
