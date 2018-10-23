@@ -51,6 +51,7 @@ def run_texas(tender_file_path):
             calculate_hash(bid["id"], HASH_SECRET)
         )
     sleep(30)
+    return auction_id
 
 
 TESTS = {
@@ -59,7 +60,7 @@ TESTS = {
                       ' {0}/etc/auction_worker_texas.yaml'
                       ' --planning_procerude partial_db --standalone',
         "runner": run_texas,
-        'auction_worker_defaults': 'auction_worker_defaults:{0}/etc/auction_worker_defaults.yaml',
+        'auction_worker_defaults': 'auction_worker_defaults:{0}/etc/auction_worker_texas.yaml',
         'suite': PWD
     }
 }
