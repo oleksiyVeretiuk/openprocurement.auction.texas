@@ -1,6 +1,7 @@
 import unittest
 import mock
 
+from urlparse import urljoin
 from uuid import uuid4
 
 from openprocurement.auction.texas.datasource import OpenProcurementAPIDataSource
@@ -11,7 +12,7 @@ class TestOpenProcurementAPIDataSource(unittest.TestCase):
 
     def setUp(self):
         self.config = {
-            'resource_api_server': 'https://lb.api-sandbox.ea.openprocurement.org/',
+            'resource_api_server': 'https://lb.api-sandbox.ea.openprocurement.org',
             'resource_api_version': '2.4',
             'resource_name': 'auction',
             'auction_id': '1' * 32,
@@ -58,12 +59,17 @@ class TestInit(TestOpenProcurementAPIDataSource):
 
         self.assertEqual(datasource.api_token, self.config['resource_api_token'])
 
-        health_url = "{resource_api_server}api/{resource_api_version}/health"
-        url = '{}api/{}/{}/{}'.format(
+        health_url = urljoin(
             self.config['resource_api_server'],
-            self.config['resource_api_version'],
-            self.config['resource_name'],
-            self.config['auction_id']
+            "/api/{resource_api_version}/health"
+        )
+        url = urljoin(
+            self.config['resource_api_server'],
+            '/api/{}/{}/{}'.format(
+                self.config['resource_api_version'],
+                self.config['resource_name'],
+                self.config['auction_id']
+            )
         )
 
         self.assertEqual(datasource.api_url, url)
@@ -85,7 +91,6 @@ class TestInit(TestOpenProcurementAPIDataSource):
             timeout=5
         )
 
-
     def test_init_without_docservice(self):
         self.config['with_document_service'] = False
 
@@ -93,12 +98,17 @@ class TestInit(TestOpenProcurementAPIDataSource):
 
         self.assertEqual(datasource.api_token, self.config['resource_api_token'])
 
-        health_url = "{resource_api_server}api/{resource_api_version}/health"
-        url = '{}api/{}/{}/{}'.format(
+        health_url = urljoin(
             self.config['resource_api_server'],
-            self.config['resource_api_version'],
-            self.config['resource_name'],
-            self.config['auction_id']
+            "/api/{resource_api_version}/health"
+        )
+        url = urljoin(
+            self.config['resource_api_server'],
+            '/api/{}/{}/{}'.format(
+                self.config['resource_api_version'],
+                self.config['resource_name'],
+                self.config['auction_id']
+            )
         )
 
         self.assertEqual(datasource.api_url, url)

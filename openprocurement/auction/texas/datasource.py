@@ -189,7 +189,10 @@ class OpenProcurementAPIDataSource(object):
     def __init__(self, config):
 
         # Checking API availability
-        health_url = "{resource_api_server}api/{resource_api_version}/health"
+        health_url = urljoin(
+            config['resource_api_server'],
+            "/api/{resource_api_version}/health"
+        )
         response = make_request(url=health_url.format(**config), method="get", retry_count=5)
         if not response:
             raise Exception("API can't be reached")
