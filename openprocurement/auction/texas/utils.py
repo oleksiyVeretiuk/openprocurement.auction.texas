@@ -3,6 +3,7 @@ import iso8601
 
 from contextlib import contextmanager
 from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 from openprocurement.auction.worker_core.constants import TIMEZONE
 from openprocurement.auction.worker_core.utils import prepare_service_stage
@@ -40,11 +41,12 @@ def prepare_auction_stages(stage_start, auction_data, deadline_hour, fast_forwar
 
         planned_end = stage_start + timedelta(seconds=ROUND_DURATION)
         planned_end = planned_end if deadline is None or planned_end < deadline else deadline
-
+        stage_amount = float(Decimal(auction_data['value']['amount'] +
+                                     auction_data['minimalStep']['amount']).quantize(Decimal('0.01')))
         main_round_stage.update({
             'start': stage_start.isoformat(),
             'type': MAIN_ROUND,
-            'amount': auction_data['value']['amount'] + auction_data['minimalStep']['amount'],
+            'amount': stage_amount,
             'time': '',
             # This field `planned_end' is needed to display time when round will automatically end if no one post bid
             'planned_end': planned_end.isoformat()

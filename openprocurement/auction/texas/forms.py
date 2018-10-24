@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
+from decimal import Decimal
 
 import wtforms_json
 from flask import request, session, current_app as app
@@ -28,7 +29,7 @@ def validate_bid_value(form, field):
         raise ValidationError(u'Current stage does not allow bidding')
     if field.data < current_amount:
         raise ValidationError(u'Too low value')
-    if field.data % minimal_step and field.data != current_amount:
+    if Decimal(field.data).quantize(Decimal('0.01')) % Decimal(minimal_step).quantize(Decimal('0.01')) and field.data != current_amount:
         raise ValidationError(
             u'Value should be a multiplier of ' 
             u'a minimalStep amount ({})'.format(minimal_step)
