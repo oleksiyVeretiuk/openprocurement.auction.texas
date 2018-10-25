@@ -724,13 +724,15 @@ class TestPrepareInitialBids(AuctionInitSetup):
                 'id': 'id_1',
                 'date': 'date_1',
                 'value': {'amount': 1000},
-                'owner': 'owner_1'
+                'owner': 'owner_1',
+                'bidNumber': 1,
             },
             {
                 'id': 'id_2',
                 'date': 'date_2',
                 'value': {'amount': 2000},
-                'owner': 'owner_2'
+                'owner': 'owner_2',
+                'bidNumber': 2
             }
         ]
         self.auction.bidders_data = deepcopy(bidders_data)
@@ -1156,7 +1158,8 @@ class TestBiddersData(AuctionInitSetup):
                 'id': 'id_1',
                 'date': 'date_1',
                 'value': 'value_1',
-                'owner': 'owner_1'
+                'owner': 'owner_1',
+                'bidNumber': '1'
             },
             {
                 'id': 'id_2',
@@ -1181,6 +1184,7 @@ class TestBiddersData(AuctionInitSetup):
 
         expected_result = deepcopy(self.prepared_bids[:2])
         del expected_result[1]['status']
+        expected_result[1]['bidNumber'] = None
 
         self.auction._set_bidders_data()
 
