@@ -178,7 +178,8 @@ class Auction(object):
                 'id': bid['id'],
                 'date': bid['date'],
                 'value': bid['value'],
-                'owner': bid.get('owner', '')
+                'owner': bid.get('owner', ''),
+                'bidNumber': bid.get('bidNumber')
             }
             for bid in auction['data'].get('bids', [])
             if bid.get('status', 'active') == 'active'
@@ -186,6 +187,7 @@ class Auction(object):
         bids = deepcopy(self.bidders_data)
         bids_info = sorting_start_bids_by_amount(bids)
         self._set_mapping()
+        bids_info.sort(key=lambda b: b['bidNumber'])
         for index, bid in enumerate(bids_info):
             auction_protocol['timeline']['auction_start']['initial_bids'].append({
                 'bidder': bid['id'],
@@ -289,6 +291,7 @@ class Auction(object):
     def _prepare_initial_bids(self, auction_document):
         bids = deepcopy(self.bidders_data)
         bids_info = sorting_start_bids_by_amount(bids)
+        bids_info.sort(key=lambda b: b['bidNumber'])
         # Prepare initial bids in document and protocol
         for index, bid in enumerate(bids_info):
             auction_document['initial_bids'].append(
@@ -393,14 +396,29 @@ class Auction(object):
                 'id': bid['id'],
                 'date': bid['date'],
                 'value': bid['value'],
-                'owner': bid.get('owner', '')
+                'owner': bid.get('owner', ''),
+                'bidNumber': bid.get('bidNumber')
             }
             for bid in self._auction_data['data'].get('bids', [])
             if bid.get('status', 'active') == 'active'
         ]
 
+    def _generate_bid_number(self, existed_numbers, bid):
+        if bid.get('bidNumber') is not None:
+            return bid['bidNumber']
+
+        number = 1
+        while True:
+            if number not in existed_numbers:
+                return number
+            number += 1
+
     def _set_mapping(self):
+        existed_numbers = [bid['bidNumber'] for bid in self.bidders_data if bid.get('bidNumber') is not None]
+
         for index, bid in enumerate(self.bidders_data):
             if bid['id'] not in self.bids_mapping:
-                generated_bid_number = len(self.bids_mapping.keys()) + 1
-                self.bids_mapping[self.bidders_data[index]['id']] = bid.get('bidNumber', generated_bid_number)
+                generated_bid_number = self._generate_bid_number(existed_numbers, bid)
+                self.bids_mapping[self.bidders_data[index]['id']] = generated_bid_number
+                bid['bidNumber'] = generated_bid_number
+                existed_numbers.append(generated_bid_number)
