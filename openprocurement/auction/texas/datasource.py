@@ -116,7 +116,7 @@ class SimpleTestingFileDataSource(object):
                 {
                     bid['id']:  {
                         'tenderers': [{'name': 'Opened name of bidder # {}'.format(i+1)}],
-                        'bidNumber': str(i+1)
+                        'bidNumber': bid.get('bidNumber', str(i+1))
                     }
                 }
             )
