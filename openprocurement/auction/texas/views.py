@@ -46,6 +46,10 @@ def login():
     return abort(401)
 
 
+def health():
+    return jsonify({'health': 'check'})
+
+
 def authorized():
     if not('error' in request.args and request.args['error'] == 'access_denied'):
         resp = app.remote_oauth.authorized_response()

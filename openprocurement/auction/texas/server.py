@@ -47,6 +47,7 @@ def add_url_rules(app):
     app.add_url_rule('/postbid', 'postbid', views.post_bid, methods=['POST'])
     app.add_url_rule('/kickclient', 'kickclient', views.kickclient, methods=['POST'])
     app.add_url_rule('/check_authorization', 'check_authorization', views.check_authorization, methods=['POST'])
+    app.add_url_rule('/health', 'health', views.health, methods=['GET'])
 
 
 def run_server(auction, mapping_expire_time, logger, timezone='Europe/Kiev', bids_form=BidsForm,
