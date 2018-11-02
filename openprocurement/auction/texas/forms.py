@@ -25,6 +25,8 @@ def validate_bid_value(form, field):
     stage_id = form.document['current_stage'] if form.document['current_stage'] >= 0 else 0
     minimal_step = form.document['minimalStep']['amount']
     current_amount = form.document['stages'][stage_id].get('amount')
+    if app.context['server_actions'].locked():
+        raise ValidationError(u'Another bid is already processing')
     if form.document['stages'][stage_id]['type'] != MAIN_ROUND:
         raise ValidationError(u'Current stage does not allow bidding')
     if field.data < current_amount:
