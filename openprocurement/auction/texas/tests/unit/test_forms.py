@@ -24,8 +24,15 @@ class TestFormValidation(unittest.TestCase):
             'bidder_id': uuid4().hex
         }
 
+        self.app = create_test_app()
+        self.patch_app = mock.patch(
+            'openprocurement.auction.texas.forms.app', self.app.application
+        )
+        self.patch_app.start()
+
     def tearDown(self):
         self.auction_document = {}
+        self.patch_app.stop()
 
     def test_default_data_required_validators(self):
         valid = self.bids_form.validate()
@@ -108,8 +115,15 @@ class TestFormHandler(unittest.TestCase):
         self.auction_document = {'current_stage': 0}
         self.app.application.context['auction_document'] = self.auction_document
 
+        self.auction_data = {
+            'amount': 100,
+            'minimalStep': 50,
+            'bidder_id': uuid4().hex
+        }
+
+        self.request = munchify({'json': {}, 'headers': {}})
         self.patch_request = mock.patch(
-            'openprocurement.auction.texas.forms.request', munchify({'json': {}, 'headers': {}})
+            'openprocurement.auction.texas.forms.request', self.request
         )
         self.patch_request.start()
 
@@ -118,9 +132,15 @@ class TestFormHandler(unittest.TestCase):
         )
         self.patch_session.start()
 
+        self.patch_app = mock.patch(
+            'openprocurement.auction.texas.forms.app', self.app.application
+        )
+        self.patch_app.start()
+
     def tearDown(self):
         self.patch_request.stop()
         self.patch_session.stop()
+        self.patch_app.stop()
 
     def test_form_handler_success(self):
 
@@ -162,6 +182,23 @@ class TestFormHandler(unittest.TestCase):
 
         self.assertEqual(
             res, {'status': 'failed', 'errors': {'bid': [u'Bid amount is required'], 'bidder_id': [u'No bidder id']}}
+        )
+
+    def test_form_handler_another_bid_is_processing(self):
+        self.auction_document.update({
+            'current_stage': 0,
+            'stages': [{'type': MAIN_ROUND, 'amount': self.auction_data['amount']}],
+            'minimalStep': {'amount': self.auction_data['minimalStep']}
+        })
+        self.app.application.context['auction_document'] = self.auction_document
+        self.app.application.context['server_actions'].acquire()
+        self.request.json = {'bidder_id': self.auction_data['bidder_id'], 'bid': 150}
+
+        with self.app.application.test_request_context():
+            res = self.app.application.form_handler()
+
+        self.assertEqual(
+            res, {'status': 'failed', 'errors': {'bid': [u'Another bid is already processing']}}
         )
 
 
