@@ -38,6 +38,10 @@ def convert_amount_to_number(amount_string):
     return float(amount_string.replace(' ', '').replace(',', '.'))
 
 
+def format_amount(amount_string):
+    return amount_string.replace('\n', ' ')
+
+
 def Highlight_Element(locator):
     seleniumlib = BuiltIn().get_library_instance('Selenium2Library')
     element = seleniumlib._element_find(locator, True, True)

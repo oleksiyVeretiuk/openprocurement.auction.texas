@@ -7,11 +7,11 @@ Library        openprocurement.auction.texas.tests.functional.service_keywords
 
 *** Variables ***
 ${USERS}
-${BROWSER}       phantomjs
+${BROWSER}       chrome
 
 *** Keywords ***
 
-Отримати вхідні дані
+Prepare Participants Data
     ${TENDER}=  prepare_tender_data
     Set Global Variable   ${TENDER}
     ${USERS}=  prepare_users_data   ${TENDER}
@@ -37,23 +37,16 @@ ${BROWSER}       phantomjs
     Highlight Elements With Text On Time    Browser ID
     Wait Until Page Contains   Session ID
     Highlight Elements With Text On Time    Session ID
-    Wait Until Page Contains   Step reduction of Bid
-    Highlight Elements With Text On Time    Step reduction of Bid
-    Wait Until Page Contains   Start price
-    Highlight Elements With Text On Time    Start price
-    Перевірити можливість змінити мову
+    Wait Until Page Contains   Стартова ціна
+    Highlight Elements With Text On Time    Стартова ціна
     Capture Page Screenshot
     Click Element              xpath=(//div[@class='clock-container__burger-icon'])
     sleep                      1s
 
 
 Перевірити можливість змінити мову
-    Click Element              xpath=(//label[contains(text(),'Українська')])
-    Wait Until Page Contains   Крок зменшення торгів
-    Click Element              xpath=(//label[contains(text(),'Русский')])
-    Wait Until Page Contains   Шаг уменьшения торгов
-    Click Element              xpath=(//label[contains(text(),'English')])
-    Wait Until Page Contains   Step reduction of Bid
+    :FOR    ${user_id}    IN    @{USERS}
+    \   Переключити мову для учасника ${user_id}
 
 
 Перевірити інформацію про тендер

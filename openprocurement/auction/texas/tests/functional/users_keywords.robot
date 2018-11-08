@@ -14,8 +14,22 @@
     Highlight Elements With Text On Time          Так
     Capture Page Screenshot
     Click Element                                 confirm
-    Wait Until Page Contains                      Waiting for start of auction
-    Highlight Elements With Text On Time          Waiting for start of auction
+    Wait Until Page Contains                      Очікується початок аукціону
+    Highlight Elements With Text On Time          Очікується початок аукціону
+
+
+Переключити мову для учасника ${user_id}
+    Switch Browser  ${user_id}
+    sleep                      1s
+    Click Element              xpath=(//div[@class='clock-container__burger-icon'])
+    Click Element              xpath=(//label[contains(text(),'Українська')])
+    Wait Until Page Contains   Крок зростання торгів
+    Click Element              xpath=(//label[contains(text(),'Русский')])
+    Wait Until Page Contains   Шаг увеличение торгов
+    Click Element              xpath=(//label[contains(text(),'English')])
+    Wait Until Page Contains   Step auction of Bid
+    Click Element              xpath=(//div[@class='clock-container__burger-icon'])
+    sleep                      1s
 
 
 Переключитись на ${user_index} учасника
@@ -31,12 +45,13 @@
     Click Element                       xpath=(//button[contains(text(),'Accept')])
 
 
-Обрати cтавку з випадаючого меню
-    Wait Until Page Contains Element   xpath=(//i[@class='dropdown icon'])
-    Click Element                      xpath=(//i[@class='dropdown icon'])
-    ${list_values}=  Get WebElements   xpath=(//div[@class='menu visible']/div[@class='item'])
+Обрати ставку з випадаючого меню
+    Wait Until Page Contains Element   xpath=(//input[@class='search arrow-false'])
+    Click Element                      xpath=(//input[@class='search arrow-false'])
+    ${list_values}=  Get WebElements   xpath=(//li[@class='autocomplete-result'])
     ${value}=  Evaluate  random.choice($list_values)  modules=random
     ${bid_amount}=  Get Text           ${value}
+    ${bid_amount}=  format_amount     ${bid_amount}
     Set Suite Variable                 ${bid_amount}
     Click Element                      ${value}
     Click Element                      xpath=(//button[contains(text(),'Announce')])
