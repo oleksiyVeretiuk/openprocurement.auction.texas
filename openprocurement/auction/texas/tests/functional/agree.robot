@@ -26,32 +26,11 @@ Waiting for start of round 2
     Почекати 2s до паузи перед 2 раундом
     Почекати 15s до завершення паузи перед 2 раундом
 
-Check round 1 results
+Check the results of round 1
     Перевірити результати 1 раунду
-
-Increase the offer price by the first participant
-    Обрати ставку з випадаючого меню
-
-Waiting for start of round 3
-    Почекати 2s до паузи перед 3 раундом
-    Почекати 15s до завершення паузи перед 3 раундом
-
-Check round 2 results
-    Перевірити результати 2 раунду
-
-Accept the offer by the second participant
-    Переключитись на 2 учасника
-    Погодитись на запропоновану ставку
-
-Waiting for start of round 4
-    Почекати 2s до паузи перед 4 раундом
-    Почекати 15s до завершення паузи перед 4 раундом
-
-Check round 3 results
-    Перевірити результати 3 раунду
 
 Waiting for end of auction
     Дочекатистись до завершення аукціону
 
 Check the Announcement results section
-    Перевірити результати аукціону  Bidder 2
+    Перевірити результати аукціону  Bidder 1
