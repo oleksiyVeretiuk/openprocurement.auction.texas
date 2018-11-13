@@ -87,11 +87,13 @@ def register_utilities(worker_config, args):
 
     deadline_defaults = {
             'enabled': True,
-            'deadline_hour': DEADLINE_HOUR
+            'deadline_time': {
+                'hour': DEADLINE_HOUR
+            }
     }
     deadline_defaults.update(worker_config.get('deadline', {}))
     if not deadline_defaults['enabled']:
-        deadline_defaults['deadline_hour'] = None
+        deadline_defaults['deadline_time'] = {}
     worker_config['deadline'] = deadline_defaults
     context['worker_defaults'] = worker_config
 

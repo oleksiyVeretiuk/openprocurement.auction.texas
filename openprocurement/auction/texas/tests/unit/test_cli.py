@@ -100,7 +100,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
         resulted_worker_config['datasource']['auction_id'] = args.auction_doc_id
         resulted_worker_config['deadline'] = {
             'enabled': True,
-            'deadline_hour': DEADLINE_HOUR
+            'deadline_time': {'hour': DEADLINE_HOUR}
         }
         self.assertEqual(self.context['worker_defaults'], resulted_worker_config)
         self.assertEqual(self.context['server_actions'], self.bounded_semaphore)
@@ -145,7 +145,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
         resulted_worker_config['datasource'] = resulted_datasource_config
         resulted_worker_config['deadline'] = {
             'enabled': False,
-            'deadline_hour': None
+            'deadline_time': {}
         }
         self.assertEqual(self.context['worker_defaults'], resulted_worker_config)
         self.assertEqual(self.context['server_actions'], self.bounded_semaphore)
@@ -155,7 +155,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
             'context': {'context': 'config'},
             'datasource': {'datasource': 'config'},
             'database': {'database': 'config'},
-            'deadline': {'enabled': False, 'deadline_hour': 20}
+            'deadline': {'enabled': False, 'deadline_time': {'hour': 20}}
         }
         args = munch.Munch({})
         args.auction_doc_id = '1' * 32
@@ -189,7 +189,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
         resulted_worker_config['datasource'] = resulted_datasource_config
         resulted_worker_config['deadline'] = {
             'enabled': False,
-            'deadline_hour': None
+            'deadline_time': {}
         }
         self.assertEqual(self.context['worker_defaults'], resulted_worker_config)
         self.assertEqual(self.context['server_actions'], self.bounded_semaphore)
@@ -199,7 +199,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
             'context': {'context': 'config'},
             'datasource': {'datasource': 'config'},
             'database': {'database': 'config'},
-            'deadline': {'enabled': True, 'deadline_hour': 20}
+            'deadline': {'enabled': True, 'deadline_time': {'hour': 20}}
         }
         args = munch.Munch({})
         args.auction_doc_id = '1' * 32
@@ -231,7 +231,7 @@ class RegisterUtilitiesTest(unittest.TestCase):
 
         resulted_worker_config = deepcopy(worker_config)
         resulted_worker_config['datasource'] = resulted_datasource_config
-        resulted_worker_config['deadline'] = {'enabled': True, 'deadline_hour': 20}
+        resulted_worker_config['deadline'] = {'enabled': True, 'deadline_time': {'hour': 20}}
         self.assertEqual(self.context['worker_defaults'], resulted_worker_config)
         self.assertEqual(self.context['server_actions'], self.bounded_semaphore)
 
