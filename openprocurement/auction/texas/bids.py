@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import logging
-from datetime import datetime
 
 from zope.component import getGlobalSiteManager
 
 from openprocurement.auction.utils import generate_request_id, sorting_by_amount
-from openprocurement.auction.worker_core.constants import TIMEZONE
 
 from openprocurement.auction.texas import utils
 from openprocurement.auction.texas.context import IContext
@@ -18,7 +16,7 @@ from openprocurement.auction.texas.journal import (
     AUCTION_WORKER_SERVICE_START_NEXT_STAGE
 )
 from openprocurement.auction.texas.utils import (
-    set_specific_hour, get_round_ending_time,
+    get_round_ending_time,
     approve_auction_protocol_info_on_bids_stage,
 )
 
@@ -89,7 +87,7 @@ class BidsHandler(object):
             pause, main_round = utils.prepare_auction_stages(
                 utils.convert_datetime(bid['time']),
                 bid_document,
-                self.context['worker_defaults']['deadline']['deadline_hour'],
+                self.context.get('deadline'),
                 fast_forward=self.context['worker_defaults'].get('sandbox_mode', False)
             )
 
@@ -107,8 +105,7 @@ class BidsHandler(object):
         )
 
         # Adding jobs to scheduler
-        deadline_hour = self.context['worker_defaults']['deadline']['deadline_hour']
-        deadline = None if deadline_hour is None else set_specific_hour(datetime.now(TIMEZONE), deadline_hour)
+        deadline = self.context.get('deadline')
 
         if main_round:
             round_start_date = utils.convert_datetime(main_round['start'])

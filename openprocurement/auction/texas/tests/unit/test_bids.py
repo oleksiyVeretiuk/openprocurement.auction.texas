@@ -2,6 +2,7 @@ import unittest
 
 import mock
 from copy import deepcopy
+from datetime import datetime
 
 from openprocurement.auction.texas.bids import BidsHandler
 from openprocurement.auction.texas.constants import DEADLINE_HOUR
@@ -116,6 +117,9 @@ class TestEndBidStage(TestBidsHandler):
         self.patch_generate_request_id = mock.patch('openprocurement.auction.texas.bids.generate_request_id')
         self.mocked_generate_request_id = self.patch_generate_request_id.start()
 
+        self.deadline = datetime.now().replace(hour=DEADLINE_HOUR)
+        self.bids_handler.context['deadline'] = self.deadline
+
         self.patch_scheduler = mock.patch('openprocurement.auction.texas.bids.SCHEDULER')
         self.mocked_scheduler = self.patch_scheduler.start()
 
@@ -144,18 +148,12 @@ class TestEndBidStage(TestBidsHandler):
         self.convert_datetime_results = ['converted_bid_time', 'converted_round_start_time']
         self.mocked_convert_datetime.side_effect = self.convert_datetime_results
 
-        self.patch_set_specific_hour = mock.patch('openprocurement.auction.texas.bids.set_specific_hour')
-        self.mocked_set_specific_hour = self.patch_set_specific_hour.start()
-        self.calculated_deadline = 'deadline'
-        self.mocked_set_specific_hour.return_value = self.calculated_deadline
-
     def tearDown(self):
         super(TestEndBidStage, self).tearDown()
         self.patch_generate_request_id.stop()
         self.patch_scheduler.stop()
         self.patch_prepare_auction_stages.stop()
         self.patch_convert_datetime.stop()
-        self.patch_set_specific_hour.stop()
         self.patch_get_round_ending_time.stop()
         self.patch_round_duration.stop()
         self.patch_approve_auction_protocol_info_on_bids_stage.stop()
@@ -189,14 +187,12 @@ class TestEndBidStage(TestBidsHandler):
             self.bids_handler.context, self.bids_handler.database
         )
 
-        self.assertEqual(self.mocked_set_specific_hour.call_count, 1)
-
         self.mocked_convert_datetime.assert_called_once_with(self.bid_with_name['time'])
         self.mocked_prepare_auction_stages.assert_called_once_with(
-            self.convert_datetime_results[0], expected_bid_document, DEADLINE_HOUR, fast_forward=False
+            self.convert_datetime_results[0], expected_bid_document, self.deadline, fast_forward=False
         )
 
-        self.bids_handler.job_service.add_ending_main_round_job.assert_called_once_with(self.calculated_deadline)
+        self.bids_handler.job_service.add_ending_main_round_job.assert_called_once_with(self.deadline)
 
         self.assertEqual(self.bids_handler.job_service.add_pause_job.call_count, 0)
         self.assertEqual(self.mocked_get_round_ending_time.call_count, 0)
@@ -232,10 +228,8 @@ class TestEndBidStage(TestBidsHandler):
         )
         self.mocked_convert_datetime.assert_any_call(self.bid_with_name['time'])
         self.mocked_prepare_auction_stages.assert_called_once_with(
-            self.convert_datetime_results[0], expected_bid_document, DEADLINE_HOUR, fast_forward=False
+            self.convert_datetime_results[0], expected_bid_document, self.deadline, fast_forward=False
         )
-
-        self.assertEqual(self.mocked_set_specific_hour.call_count, 1)
 
         self.mocked_convert_datetime.assert_any_call(prepare_auction_stages_result[1]['start'])
 
@@ -243,7 +237,7 @@ class TestEndBidStage(TestBidsHandler):
         self.bids_handler.job_service.add_pause_job.assert_called_once_with(self.convert_datetime_results[1])
 
         self.mocked_get_round_ending_time.assert_called_once_with(
-            self.convert_datetime_results[1], self.mocked_round_duration, self.calculated_deadline
+            self.convert_datetime_results[1], self.mocked_round_duration, self.deadline
         )
 
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
+from datetime import datetime
 from pkg_resources import iter_entry_points
 
 from gevent.event import Event
@@ -56,6 +57,7 @@ class DictContext(object):
         'server': {'type': WSGIServer},
         'server_actions': {'type': BoundedSemaphore},
         'worker_defaults': {'type': dict},
+        'deadline': {'type': datetime},
     }
 
     error_messages = {

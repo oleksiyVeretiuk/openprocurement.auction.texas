@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from datetime import timedelta
+
 ROUND_DURATION = 180
 PAUSE_DURATION = 10
 BIDS_KEYS_FOR_COPY = ("bidder_id", "time")
@@ -13,5 +16,6 @@ PREANNOUNCEMENT = 'pre-announcement'
 END = 'announcement'
 
 DEADLINE_HOUR = 17
+SANDBOX_AUCTION_DURATION = timedelta(minutes=30)
 
 DEFAULT_AUCTION_TYPE = 'texas'

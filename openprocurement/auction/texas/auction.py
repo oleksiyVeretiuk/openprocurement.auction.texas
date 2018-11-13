@@ -28,7 +28,8 @@ from openprocurement.auction.texas.constants import (
     MULTILINGUAL_FIELDS,
     ADDITIONAL_LANGUAGES,
     ROUND_DURATION,
-    DEFAULT_AUCTION_TYPE
+    DEFAULT_AUCTION_TYPE,
+    SANDBOX_AUCTION_DURATION,
 )
 from openprocurement.auction.texas.context import IContext
 from openprocurement.auction.texas.datasource import IDataSource
@@ -80,6 +81,11 @@ class Auction(object):
             self.context['bids_mapping'] = deepcopy(self.bids_mapping)
             self.auction_protocol = utils.prepare_auction_protocol(self.context)
             self.context['auction_protocol'] = deepcopy(self.auction_protocol)
+
+        if self.context['auction_document'].get('submissionMethodDetails') == 'quick':
+            utils.set_relative_deadline(self.context, self.startDate, SANDBOX_AUCTION_DURATION)
+        else:
+            utils.set_absolute_deadline(self.context, self.startDate)
 
         # Add job that starts auction server
         SCHEDULER.add_job(
@@ -261,20 +267,28 @@ class Auction(object):
 
         self.synchronize_auction_info(prepare=True)
 
+        if self.worker_defaults.get('sandbox_mode', False) and \
+                self._auction_data.get('data', {}).get('mode') == 'test' and \
+                'quick' in self._auction_data['data'].get('submissionMethodDetails', ''):
+            auction_document['submissionMethodDetails'] = 'quick'
+            utils.set_relative_deadline(self.context, self.startDate, SANDBOX_AUCTION_DURATION)
+        else:
+            utils.set_absolute_deadline(self.context, self.startDate)
+
         self._prepare_auction_document_data(auction_document)
 
         if self.worker_defaults.get('sandbox_mode', False):
             pause, main_round = utils.prepare_auction_stages(
                 self.startDate,
                 deepcopy(auction_document),
-                self.context['worker_defaults']['deadline']['deadline_hour'],
+                self.context.get('deadline'),
                 fast_forward=True
             )
         else:
             pause, main_round = utils.prepare_auction_stages(
                 self.startDate,
                 deepcopy(auction_document),
-                self.context['worker_defaults']['deadline']['deadline_hour']
+                self.context.get('deadline')
             )
 
         auction_document['stages'] = [pause, main_round]

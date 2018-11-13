@@ -27,7 +27,7 @@ def prepare_results_stage(bidder_id="", bidder_name="", amount="", time=""):
     return stage
 
 
-def prepare_auction_stages(stage_start, auction_data, deadline_hour, fast_forward=False):
+def prepare_auction_stages(stage_start, auction_data, deadline, fast_forward=False):
     pause_stage = prepare_service_stage(
         start=stage_start.isoformat(), type=PAUSE
     )
@@ -36,8 +36,7 @@ def prepare_auction_stages(stage_start, auction_data, deadline_hour, fast_forwar
 
     stage_start += timedelta(seconds=PAUSE_DURATION)
 
-    deadline = set_specific_hour(stage_start, deadline_hour) if deadline_hour else None
-    if deadline is None or stage_start < deadline:
+    if not deadline or stage_start < deadline:
 
         planned_end = stage_start + timedelta(seconds=ROUND_DURATION)
         planned_end = planned_end if deadline is None or planned_end < deadline else deadline
@@ -70,16 +69,23 @@ def get_round_ending_time(start_date, duration, deadline):
     return deadline
 
 
-def set_specific_hour(date_time, hour):
-    """Reset datetime's time to {hour}:00:00, while saving timezone data
+def set_specific_time(date_time, hour, minute=0, second=0):
+    """Reset datetime's time to {hour}:{minute}:{second}, while saving timezone data
 
     Example:
         2018-1-1T14:12:55+02:00 -> 2018-1-1T02:00:00+02:00, for hour=2
         2018-1-1T14:12:55+02:00 -> 2018-1-1T18:00:00+02:00, for hour=18
     """
+    minute = minute + second / 60
+    hour = hour + minute / 60
 
     return datetime.combine(
-        date_time.date(), time(hour % 24, tzinfo=date_time.tzinfo)
+        date_time.date(), time(
+            hour % 24,
+            minute % 60,
+            second % 60,
+            tzinfo=date_time.tzinfo
+        )
     )
 
 
@@ -196,3 +202,42 @@ def approve_auction_protocol_info_on_announcement(auction_document, auction_prot
             bid_result_audit['owner'] = approved[bid['bidder_id']].get('owner', '')
         auction_protocol['timeline']['results']['bids'].append(bid_result_audit)
     return auction_protocol
+
+
+def set_relative_deadline(context, start_date, duration):
+    """
+    Set maximum duration for auction
+
+    :param context: Shared mapping for auction worker
+    :type context: openprocurement.auction.texas.context.IContext
+    :param start_date: Full date of auction start
+    :type start_date: datetime.datetime
+    :param duration: Maximum duration of auction
+    :type duration: datetime.timedelta
+    :return: None
+    """
+    deadline = start_date + duration
+    worker_defaults = context['worker_defaults']
+    worker_defaults['deadline']['deadline_time'].update({
+        'hour': deadline.hour,
+        'minute': deadline.minute,
+        'second': deadline.second
+    })
+    context['worker_defaults'] = worker_defaults
+    context['deadline'] = deadline
+
+
+def set_absolute_deadline(context, start_date):
+    """
+    Set absolute date of auction end
+
+    :param context: Shared mapping for auction worker
+    :type context: openprocurement.auction.texas.context.IContext
+    :param start_date: Full date of auction start
+    :type start_date: datetime.datetime
+    :return: None
+    """
+    deadline_time = context['worker_defaults']['deadline'].get('deadline_time', {})
+    if deadline_time:
+        deadline = set_specific_time(start_date, **deadline_time)
+        context['deadline'] = deadline

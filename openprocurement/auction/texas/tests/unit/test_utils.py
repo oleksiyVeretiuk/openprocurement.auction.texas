@@ -12,12 +12,13 @@ from openprocurement.auction.texas.constants import (
     END,
     ROUND_DURATION
 )
+from openprocurement.auction.texas.context import prepare_context
 from openprocurement.auction.texas.utils import (
     prepare_results_stage,
     prepare_auction_stages,
     prepare_end_stage,
     get_round_ending_time,
-    set_specific_hour,
+    set_specific_time,
     get_bids,
     open_bidders_name,
     prepare_auction_protocol,
@@ -25,7 +26,8 @@ from openprocurement.auction.texas.utils import (
     approve_auction_protocol_info,
     approve_auction_protocol_info_on_announcement,
     approve_auction_protocol_info_on_bids_stage,
-)
+    set_absolute_deadline,
+    set_relative_deadline)
 
 
 class TestPrepareResultStage(unittest.TestCase):
@@ -97,7 +99,7 @@ class TestPrepareAuctionStages(unittest.TestCase):
                 'time': ''
             }
         ]
-        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
+        stages = prepare_auction_stages(stage_start, self.auction_data, datetime.now().replace(hour=DEADLINE_HOUR))
         self.assertEqual(stages, expected)
 
     def test_generating_stages_without_deadline(self):
@@ -135,7 +137,7 @@ class TestPrepareAuctionStages(unittest.TestCase):
                 'time': ''
             }
         ]
-        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
+        stages = prepare_auction_stages(stage_start, self.auction_data, deadline)
         self.assertEqual(stages, expected)
 
     def test_generating_stages_after_deadline(self):
@@ -149,7 +151,7 @@ class TestPrepareAuctionStages(unittest.TestCase):
             {}
         ]
 
-        stages = prepare_auction_stages(stage_start, self.auction_data, DEADLINE_HOUR)
+        stages = prepare_auction_stages(stage_start, self.auction_data, datetime.now().replace(hour=DEADLINE_HOUR))
         self.assertEqual(stages, expected)
 
 
@@ -198,13 +200,13 @@ class TestGetRoundEndingTime(unittest.TestCase):
 
 class TestSetSpecificHour(unittest.TestCase):
 
-    def test_set_specific_hour(self):
+    def test_set_specific_time(self):
         date = datetime.now()
         hour = date.hour + 1 if date.hour < 23 else date.hour - 1
 
         expected = date.replace(hour=hour, second=0, microsecond=0, minute=0)
 
-        new_date = set_specific_hour(date, hour)
+        new_date = set_specific_time(date, hour)
         self.assertEqual(new_date, expected)
 
 
@@ -625,6 +627,69 @@ class TestApproveAuctionProtocolInfoAnnouncement(unittest.TestCase):
             approved
         )
         self.assertEqual(approved_protocol, expected)
+
+
+class BaseDeadlineTest(unittest.TestCase):
+    def setUp(self):
+        self.context = prepare_context({'type': 'dict'})
+        self.worker_defaults = {'deadline': {'deadline_time': {}}}
+        self.context['worker_defaults'] = self.worker_defaults
+
+        self.start_date = datetime(1970, 1, 1, 0, 0, 0)
+
+    def tearDown(self):
+        self.worker_defaults = {'deadline': {'deadline_time': {}}}
+
+
+class TestSetAbsoluteDeadline(BaseDeadlineTest):
+
+    def setUp(self):
+        super(TestSetAbsoluteDeadline, self).setUp()
+
+        self.deadline = datetime(2011, 11, 11, 0, 0, 0)
+
+        self.patch_set_specific_time = mock.patch('openprocurement.auction.texas.utils.set_specific_time')
+        self.mocked_set_specific_time = self.patch_set_specific_time.start()
+        self.mocked_set_specific_time.return_value = self.deadline
+
+    def tearDown(self):
+        super(TestSetAbsoluteDeadline, self).tearDown()
+        self.patch_set_specific_time.stop()
+
+    def test_set_absolute_deadline_no_deadline_time(self):
+        set_absolute_deadline(self.context, self.start_date)
+
+        self.assertEqual(self.mocked_set_specific_time.call_count, 0)
+        self.assertEqual(self.context.get('deadline'), None)
+
+    def test_set_absolute_deadline_with_deadline_time(self):
+        self.worker_defaults['deadline']['deadline_time'].update({'hour': 'hour'})
+        self.context['worker_defaults'] = self.worker_defaults
+
+        set_absolute_deadline(self.context, self.start_date)
+        self.mocked_set_specific_time.assert_called_once_with(
+            self.start_date, **self.worker_defaults['deadline']['deadline_time']
+        )
+        self.assertEqual(self.context.get('deadline'), self.deadline)
+
+
+class TestSetRelativeDeadline(BaseDeadlineTest):
+
+    def setUp(self):
+        super(TestSetRelativeDeadline, self).setUp()
+        self.duration = timedelta(minutes=30)
+
+    def test_set_relative_deadline(self):
+        set_relative_deadline(self.context, self.start_date, self.duration)
+
+        self.assertEqual(
+            self.context['worker_defaults']['deadline']['deadline_time'],
+            {'hour': 0, 'minute': 30, 'second': 0}
+        )
+        self.assertEqual(
+            self.context.get('deadline'),
+            self.start_date + self.duration
+        )
 
 
 def suite():

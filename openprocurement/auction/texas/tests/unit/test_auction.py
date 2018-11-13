@@ -11,7 +11,8 @@ from openprocurement.auction.texas.constants import (
     ADDITIONAL_LANGUAGES,
     DEADLINE_HOUR,
     ROUND_DURATION,
-    DEFAULT_AUCTION_TYPE
+    DEFAULT_AUCTION_TYPE,
+    SANDBOX_AUCTION_DURATION
 )
 
 
@@ -43,9 +44,10 @@ class AuctionInitSetup(unittest.TestCase):
         self.mock_context = {
             '_end_auction_event': self.mock_end_auction_event,
             'auction_doc_id': self.tender_id,
+            'deadline': 'deadline',
             'worker_defaults': {
                 'deadline': {
-                    'deadline_hour': DEADLINE_HOUR
+                    'deadline_time': {'hour': DEADLINE_HOUR}
                 }
             }
         }
@@ -76,6 +78,7 @@ class TestScheduleAuction(AuctionInitSetup):
     def setUp(self):
         super(TestScheduleAuction, self).setUp()
         self.auction.start_auction = mock.MagicMock()
+        self.auction.startDate = 'startDate'
 
         self.patch_scheduler = mock.patch(
             'openprocurement.auction.texas.auction.SCHEDULER'
@@ -385,7 +388,6 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mock_db.get_auction_document.return_value = public_document
 
         auction_document = deepcopy(public_document)
-
         self.auction.prepare_auction_document()
 
         self.assertEqual(self.mock_db.get_auction_document.call_count, 1)
@@ -398,7 +400,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -432,7 +439,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -472,7 +484,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -510,7 +527,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -551,9 +573,14 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_utils.prepare_auction_stages.assert_called_with(
             self.start_date,
             auction_document,
-            DEADLINE_HOUR,
+            self.mock_context['deadline'],
             fast_forward=True
         )
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -591,7 +618,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -629,7 +661,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = self.prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -668,7 +705,12 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
 
         self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
-        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, DEADLINE_HOUR)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(self.start_date, auction_document, self.mock_context['deadline'])
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 1)
+        self.mocked_utils.set_absolute_deadline.assert_called_with(self.mock_context, self.start_date)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 0)
 
         auction_document['stages'] = prepared_stages
         self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
@@ -680,6 +722,63 @@ class TestPrepareAuctionDocument(AuctionInitSetup):
         self.assertEqual(self.mock_datasource.set_participation_urls.call_count, 0)
 
         self.assertEqual(self.mocked_reschedule.call_count, 1)
+
+    def test_if_mod_test_and_smd(self):
+        self.auction.worker_defaults['sandbox_mode'] = True
+
+        public_document = {
+            '_rev': '111'
+        }
+        self.auction._auction_data = {
+            'data': {
+                'mode': 'test',
+                'submissionMethodDetails': 'quick',
+            }
+        }
+        self.mock_db.get_auction_document.return_value = public_document
+
+        auction_document = deepcopy(public_document)
+        auction_document.update({'submissionMethodDetails': 'quick'})
+
+        self.auction.prepare_auction_document()
+
+        self.assertEqual(self.mock_db.get_auction_document.call_count, 1)
+        self.mock_db.get_auction_document.assert_called_with(self.mock_context['auction_doc_id'])
+
+        self.assertEqual(self.mocked_synchronize_auction_info.call_count, 1)
+        self.mocked_synchronize_auction_info.assert_called_with(prepare=True)
+
+        self.assertEqual(self.mocked_prepare_auction_document_data.call_count, 1)
+        self.mocked_prepare_auction_document_data.assert_called_with(auction_document)
+
+        self.assertEqual(self.mocked_utils.prepare_auction_stages.call_count, 1)
+        self.mocked_utils.prepare_auction_stages.assert_called_with(
+            self.start_date,
+            auction_document,
+            self.mock_context['deadline'],
+            fast_forward=True
+        )
+
+        self.assertEqual(self.mocked_utils.set_absolute_deadline.call_count, 0)
+
+        self.assertEqual(self.mocked_utils.set_relative_deadline.call_count, 1)
+        self.mocked_utils.set_relative_deadline.assert_called_with(
+            self.mock_context, self.start_date, SANDBOX_AUCTION_DURATION
+        )
+
+        auction_document['stages'] = self.prepared_stages
+        self.assertEqual(self.mock_db.save_auction_document.call_count, 1)
+        self.mock_db.save_auction_document.assert_called_with(
+            auction_document,
+            self.mock_context['auction_doc_id']
+        )
+
+        self.assertEqual(self.mock_datasource.set_participation_urls.call_count, 1)
+        self.mock_datasource.set_participation_urls.assert_called_with(
+            self.auction._auction_data
+        )
+
+        self.assertEqual(self.mocked_reschedule.call_count, 0)
 
 
 class TestPrepareInitialBids(AuctionInitSetup):
