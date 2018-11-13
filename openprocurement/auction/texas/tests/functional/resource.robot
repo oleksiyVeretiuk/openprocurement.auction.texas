@@ -66,11 +66,12 @@ Prepare Participants Data
 
 
 Дочекатистись до завершення аукціону
-    [Arguments]    ${timeout}=3 min
+    [Arguments]    ${timeout}=4 min
     Wait Until Page Contains      Auction is completed by the licitator   ${timeout}
     Wait Until Page Contains      Sold
-    Wait Until Page Contains      Announcement
 
 
 Перевірити результати аукціону
-    Element Should Contain    xpath=(//h3[@class='word-winner'])    Bidder 2
+    [Arguments]    ${winner}
+    Wait Until Page Contains      Announcement
+    Element Should Contain    xpath=(//h3[@class='word-winner'])    ${winner}
