@@ -267,9 +267,7 @@ class Auction(object):
 
         self.synchronize_auction_info(prepare=True)
 
-        if self.worker_defaults.get('sandbox_mode', False) and \
-                self._auction_data.get('data', {}).get('mode') == 'test' and \
-                'quick' in self._auction_data['data'].get('submissionMethodDetails', ''):
+        if self.relative_deadline_for_sandbox_mode:
             auction_document['submissionMethodDetails'] = 'quick'
             utils.set_relative_deadline(self.context, self.startDate, SANDBOX_AUCTION_DURATION)
         else:
@@ -436,3 +434,9 @@ class Auction(object):
                 self.bids_mapping[self.bidders_data[index]['id']] = generated_bid_number
                 bid['bidNumber'] = generated_bid_number
                 existed_numbers.append(generated_bid_number)
+
+    @property
+    def relative_deadline_for_sandbox_mode(self):
+        return self.worker_defaults.get('sandbox_mode', False) and \
+            self._auction_data.get('data', {}).get('mode') == 'test' and \
+            'quick' in self._auction_data['data'].get('submissionMethodDetails', '')
