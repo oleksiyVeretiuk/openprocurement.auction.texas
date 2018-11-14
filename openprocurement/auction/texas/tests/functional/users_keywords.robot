@@ -2,7 +2,7 @@
 
 Підготувати клієнт для ${user_index} користувача
     ${user_id}=  Get Variable Value         ${USERS_ids[${user_index}]}
-    Open Browser  https://prozorro.sale/    ${BROWSER}  ${user_id}
+    Open Browser  https://prozorro.sale/    ${BROWSER}  ${user_id}  remote_url=${remote_url}  desired_capabilities=${desired_capabilities}
     Set Window Position                     @{USERS['${user_id}']['position']}
     Set Window Size                         @{USERS['${user_id}']['size']}
 
