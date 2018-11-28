@@ -22,11 +22,11 @@
     Switch Browser  ${user_id}
     sleep                      1s
     Click Element              xpath=(//div[@class='clock-container__burger-icon'])
-    Click Element              xpath=(//label[contains(text(),'Українська')])
+    Click Element              Українська
     Wait Until Page Contains   Крок зростання торгів
-    Click Element              xpath=(//label[contains(text(),'Русский')])
+    Click Element              Русский
     Wait Until Page Contains   Шаг увеличение торгов
-    Click Element              xpath=(//label[contains(text(),'English')])
+    Click Element              English
     Wait Until Page Contains   Step auction of Bid
     Click Element              xpath=(//div[@class='clock-container__burger-icon'])
     sleep                      1s
@@ -39,19 +39,19 @@
 
 
 Погодитись на запропоновану ставку
-    Wait Until Page Contains Element    xpath=(//button[contains(text(),'Accept')])
-    ${bid_amount}=  Get Text            xpath=(//h3[@class='approval-mount'])
+    Wait Until Page Contains Element    button__approval
+    ${bid_amount}=  Get Text            approval-mount
     Set Suite Variable                  ${bid_amount}
-    Click Element                       xpath=(//button[contains(text(),'Accept')])
+    Click Element                       button__approval
 
 
 Обрати ставку з випадаючого меню
-    Wait Until Page Contains Element   xpath=(//input[@class='search arrow-false'])
-    Click Element                      xpath=(//input[@class='search arrow-false'])
+    Wait Until Page Contains Element   input_search
+    Click Element                      input_search
     ${list_values}=  Get WebElements   xpath=(//li[@class='autocomplete-result'])
     ${value}=  Evaluate  random.choice($list_values)  modules=random
     ${bid_amount}=  Get Text           ${value}
     ${bid_amount}=  format_amount     ${bid_amount}
     Set Suite Variable                 ${bid_amount}
     Click Element                      ${value}
-    Click Element                      xpath=(//button[contains(text(),'Announce')])
+    Click Element                      button__increase
