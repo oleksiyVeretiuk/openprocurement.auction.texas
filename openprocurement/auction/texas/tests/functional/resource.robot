@@ -18,6 +18,8 @@ Prepare Participants Data
     Reverse List  ${USERS_ids}
     Set Global Variable  ${USERS}
     Set Global Variable  ${USERS_ids}
+    Log  ${USERS['${USERS_ids[0]}']['login_url']}  WARN
+    Log  ${USERS['${USERS_ids[1]}']['login_url']}  WARN
 
 
 Долучитись до аукціону ${user_index} учасником
